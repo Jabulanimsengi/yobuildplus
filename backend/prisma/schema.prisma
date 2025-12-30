@@ -1,0 +1,151 @@
+// Yobuildplus Database Schema
+// PostgreSQL database for builder/contractor directory
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER MODELS (Authentication)
+// ============================================
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("contractor") // admin, contractor
+  
+  builderId String?  @unique
+  builder   Builder? @relation(fields: [builderId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+// ============================================
+// CATEGORY MODELS
+// ============================================
+
+model Category {
+  id            String        @id @default(uuid())
+  slug          String        @unique
+  name          String
+  icon          String
+  description   String
+  subcategories Subcategory[]
+  builders      Builder[]     @relation("BuilderCategories")
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Subcategory {
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  name        String
+  searchTerms String[]
+  
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId  String
+  builders    Builder[] @relation("BuilderSubcategories")
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ============================================
+// BUILDER MODELS
+// ============================================
+
+model Builder {
+  id                String        @id @default(uuid())
+  slug              String        @unique
+  name              String
+  logo              String?
+  coverImage        String?
+  description       String
+  yearStarted       Int
+  teamSize          Int
+  projectsCompleted Int
+  city              String
+  address           String
+  phone             String
+  email             String
+  website           String?
+  rating            Float         @default(0)
+  reviewCount       Int           @default(0)
+  verified          Boolean       @default(false)
+  serviceAttributes String[]
+  photos            String[]
+  provinces         String[]
+  latitude          Float?
+  longitude         Float?
+  
+  // New fields for pricing and areas
+  callOutFee        Float?
+  hourlyRate        Float?
+  serviceAreas      String[]
+  
+  // Approval workflow
+  approvalStatus    String        @default("pending") // pending, approved, rejected
+  
+  categories    Category[]    @relation("BuilderCategories")
+  subcategories Subcategory[] @relation("BuilderSubcategories")
+  projects      Project[]
+  reviews       Review[]
+  user          User?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([rating])
+  @@index([verified])
+  @@index([approvalStatus])
+}
+
+// ============================================
+// PROJECT & REVIEW MODELS
+// ============================================
+
+model Project {
+  id          String    @id @default(uuid())
+  title       String
+  description String
+  status      String    // ongoing, completed, cancelled
+  images      String[]
+  province    String
+  city        String
+  completedAt DateTime?
+  
+  builder   Builder @relation(fields: [builderId], references: [id], onDelete: Cascade)
+  builderId String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Review {
+  id           String   @id @default(uuid())
+  authorName   String
+  authorAvatar String?
+  rating       Int
+  comment      String
+  projectType  String?
+  
+  builder   Builder @relation(fields: [builderId], references: [id], onDelete: Cascade)
+  builderId String
+  
+  createdAt DateTime @default(now())
+
+  @@index([builderId])
+  @@index([rating])
+}

@@ -1,0 +1,163 @@
+import { PrismaService } from '../prisma/prisma.service';
+interface BuilderFilters {
+    province?: string;
+    category?: string;
+    minRating?: number;
+    search?: string;
+}
+export declare class BuildersService {
+    private prisma;
+    constructor(prisma: PrismaService);
+    findAll(filters: BuilderFilters): Promise<({
+        subcategories: {
+            id: string;
+            slug: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            searchTerms: string[];
+            categoryId: string;
+        }[];
+        categories: {
+            id: string;
+            slug: string;
+            name: string;
+            icon: string;
+            description: string;
+            createdAt: Date;
+            updatedAt: Date;
+        }[];
+    } & {
+        id: string;
+        slug: string;
+        name: string;
+        description: string;
+        createdAt: Date;
+        updatedAt: Date;
+        logo: string | null;
+        coverImage: string | null;
+        yearStarted: number;
+        teamSize: number;
+        projectsCompleted: number;
+        city: string;
+        address: string;
+        phone: string;
+        email: string;
+        website: string | null;
+        rating: number;
+        reviewCount: number;
+        verified: boolean;
+        serviceAttributes: string[];
+        photos: string[];
+        provinces: string[];
+        latitude: number | null;
+        longitude: number | null;
+        callOutFee: number | null;
+        hourlyRate: number | null;
+        serviceAreas: string[];
+        approvalStatus: string;
+    })[]>;
+    findBySlug(slug: string): Promise<{
+        subcategories: {
+            id: string;
+            slug: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            searchTerms: string[];
+            categoryId: string;
+        }[];
+        categories: {
+            id: string;
+            slug: string;
+            name: string;
+            icon: string;
+            description: string;
+            createdAt: Date;
+            updatedAt: Date;
+        }[];
+        projects: {
+            id: string;
+            description: string;
+            createdAt: Date;
+            updatedAt: Date;
+            city: string;
+            builderId: string;
+            province: string;
+            title: string;
+            status: string;
+            images: string[];
+            completedAt: Date | null;
+        }[];
+        reviews: {
+            id: string;
+            createdAt: Date;
+            rating: number;
+            builderId: string;
+            authorName: string;
+            authorAvatar: string | null;
+            comment: string;
+            projectType: string | null;
+        }[];
+    } & {
+        id: string;
+        slug: string;
+        name: string;
+        description: string;
+        createdAt: Date;
+        updatedAt: Date;
+        logo: string | null;
+        coverImage: string | null;
+        yearStarted: number;
+        teamSize: number;
+        projectsCompleted: number;
+        city: string;
+        address: string;
+        phone: string;
+        email: string;
+        website: string | null;
+        rating: number;
+        reviewCount: number;
+        verified: boolean;
+        serviceAttributes: string[];
+        photos: string[];
+        provinces: string[];
+        latitude: number | null;
+        longitude: number | null;
+        callOutFee: number | null;
+        hourlyRate: number | null;
+        serviceAreas: string[];
+        approvalStatus: string;
+    }>;
+    updateProfile(id: string, updateData: any): Promise<{
+        id: string;
+        slug: string;
+        name: string;
+        description: string;
+        createdAt: Date;
+        updatedAt: Date;
+        logo: string | null;
+        coverImage: string | null;
+        yearStarted: number;
+        teamSize: number;
+        projectsCompleted: number;
+        city: string;
+        address: string;
+        phone: string;
+        email: string;
+        website: string | null;
+        rating: number;
+        reviewCount: number;
+        verified: boolean;
+        serviceAttributes: string[];
+        photos: string[];
+        provinces: string[];
+        latitude: number | null;
+        longitude: number | null;
+        callOutFee: number | null;
+        hourlyRate: number | null;
+        serviceAreas: string[];
+        approvalStatus: string;
+    }>;
+}
+export {};

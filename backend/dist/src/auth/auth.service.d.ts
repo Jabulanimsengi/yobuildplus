@@ -1,0 +1,101 @@
+import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from '../prisma/prisma.service';
+import { RegisterDto, LoginDto } from './dto/auth.dto';
+export declare class AuthService {
+    private prisma;
+    private jwtService;
+    constructor(prisma: PrismaService, jwtService: JwtService);
+    register(registerDto: RegisterDto): Promise<{
+        user: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            email: string;
+            role: string;
+            builderId: string | null;
+        };
+        token: string;
+    }>;
+    login(loginDto: LoginDto): Promise<{
+        user: {
+            builder: {
+                id: string;
+                slug: string;
+                name: string;
+                description: string;
+                createdAt: Date;
+                updatedAt: Date;
+                logo: string | null;
+                coverImage: string | null;
+                yearStarted: number;
+                teamSize: number;
+                projectsCompleted: number;
+                city: string;
+                address: string;
+                phone: string;
+                email: string;
+                website: string | null;
+                rating: number;
+                reviewCount: number;
+                verified: boolean;
+                serviceAttributes: string[];
+                photos: string[];
+                provinces: string[];
+                latitude: number | null;
+                longitude: number | null;
+                callOutFee: number | null;
+                hourlyRate: number | null;
+                serviceAreas: string[];
+                approvalStatus: string;
+            } | null;
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            email: string;
+            role: string;
+            builderId: string | null;
+        };
+        token: string;
+    }>;
+    getMe(userId: string): Promise<{
+        builder: {
+            id: string;
+            slug: string;
+            name: string;
+            description: string;
+            createdAt: Date;
+            updatedAt: Date;
+            logo: string | null;
+            coverImage: string | null;
+            yearStarted: number;
+            teamSize: number;
+            projectsCompleted: number;
+            city: string;
+            address: string;
+            phone: string;
+            email: string;
+            website: string | null;
+            rating: number;
+            reviewCount: number;
+            verified: boolean;
+            serviceAttributes: string[];
+            photos: string[];
+            provinces: string[];
+            latitude: number | null;
+            longitude: number | null;
+            callOutFee: number | null;
+            hourlyRate: number | null;
+            serviceAreas: string[];
+            approvalStatus: string;
+        } | null;
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        email: string;
+        role: string;
+        builderId: string | null;
+    }>;
+}
