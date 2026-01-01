@@ -27,9 +27,9 @@ export default function NotFound() {
                     </Button>
 
                     <Button asChild variant="outline" className="w-full border-slate-300 text-slate-700 hover:bg-slate-50 h-12 text-lg">
-                        <Link href="/builders">
+                        <Link href="/contractors">
                             <Search className="mr-2 h-5 w-5" />
-                            Find Builders
+                            Find Contractors
                         </Link>
                     </Button>
                 </div>

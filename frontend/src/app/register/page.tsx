@@ -15,10 +15,12 @@ export default function RegisterPage() {
         <div className="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-2xl shadow-lg border border-slate-100">
                 <div className="text-center">
-                    <Link href="/" className="inline-flex items-center gap-2 mb-6">
-                        <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-[#0EA5E9] text-white font-bold text-xl">
-                            Y+
-                        </div>
+                    <Link href="/" className="inline-block mb-6">
+                        <img
+                            src="/yobuild+.png"
+                            alt="Yobuildplus"
+                            className="h-14 w-auto"
+                        />
                     </Link>
                     <h2 className="text-3xl font-bold text-slate-900">Create account</h2>
                     <p className="mt-2 text-slate-600">
@@ -53,7 +55,7 @@ export default function RegisterPage() {
                         <div className="space-y-2">
                             <Label htmlFor="role">I am a...</Label>
                             <select id="role" className="flex h-10 w-full rounded-md border border-input bg-slate-50 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                                <option value="homeowner">Homeowner looking for builders</option>
+                                <option value="client">Client looking for contractors</option>
                                 <option value="builder">Builder / Contractor</option>
                             </select>
                         </div>

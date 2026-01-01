@@ -47,10 +47,10 @@ async function main() {
     const categories = await Promise.all([
         prisma.category.create({
             data: {
-                slug: 'structural-core-construction',
-                name: 'Structural & Core Construction',
+                slug: 'building-roofing',
+                name: 'Building & Roofing',
                 icon: '🏗️',
-                description: 'The shell - main structure and stability of buildings',
+                description: 'Builders, roofers and general construction work',
                 subcategories: {
                     create: [
                         { slug: 'general-building', name: 'General Building & Contracting', searchTerms: ['builder', 'contractor', 'new builds', 'extensions', 'renovations'] },
@@ -62,10 +62,10 @@ async function main() {
         }),
         prisma.category.create({
             data: {
-                slug: 'electrical-plumbing-systems',
-                name: 'Electrical, Plumbing & Systems',
+                slug: 'electrical-plumbing-solar',
+                name: 'Electrical, Plumbing & Solar',
                 icon: '⚡',
-                description: 'The guts - essential utilities and systems',
+                description: 'Electricians, plumbers and solar installers',
                 subcategories: {
                     create: [
                         { slug: 'electricians', name: 'Electricians', searchTerms: ['electrical', 'wiring', 'power', 'lights', 'COC', 'certificate'] },
@@ -77,10 +77,10 @@ async function main() {
         }),
         prisma.category.create({
             data: {
-                slug: 'interiors-finishing',
-                name: 'Interiors & Finishing',
+                slug: 'renovations-interiors',
+                name: 'Renovations & Interiors',
                 icon: '🎨',
-                description: 'The look - aesthetics and usability of interiors',
+                description: 'Kitchen, bathroom and interior upgrades',
                 subcategories: {
                     create: [
                         { slug: 'painting', name: 'Painting & Decorating', searchTerms: ['painter', 'paint', 'interior paint', 'exterior paint', 'spray paint'] },
@@ -92,10 +92,10 @@ async function main() {
         }),
         prisma.category.create({
             data: {
-                slug: 'security-exterior',
-                name: 'Metalwork, Security & Exterior',
+                slug: 'security-gates-fencing',
+                name: 'Security, Gates & Fencing',
                 icon: '🔒',
-                description: 'The perimeter - security and external features',
+                description: 'CCTV, alarms, electric fencing and gate motors',
                 subcategories: {
                     create: [
                         { slug: 'welding', name: 'Welders & Metal Fabricators', searchTerms: ['welder', 'burglar bars', 'staircases', 'metal work', 'fabrication'] },
@@ -107,10 +107,10 @@ async function main() {
         }),
         prisma.category.create({
             data: {
-                slug: 'landscaping-outdoor',
-                name: 'Landscaping & Outdoor Living',
+                slug: 'garden-pools',
+                name: 'Garden & Pools',
                 icon: '🌿',
-                description: 'The garden and leisure areas',
+                description: 'Landscaping, gardening and swimming pool services',
                 subcategories: {
                     create: [
                         { slug: 'landscaping-design', name: 'Landscaping & Garden Design', searchTerms: ['landscaper', 'garden', 'lawn', 'plants', 'design'] },
@@ -248,15 +248,7 @@ async function main() {
         }),
     ]);
     console.log(`✅ Created ${builders.length} builders`);
-    const passwordHash = await bcrypt.hash('Jabu2580$', 10);
-    await prisma.user.create({
-        data: {
-            email: 'admin@yobuild.co.za',
-            password: passwordHash,
-            name: 'Admin User',
-            role: 'admin',
-        },
-    });
+    const passwordHash = await bcrypt.hash('password123', 10);
     if (builders[0]) {
         await prisma.user.create({
             data: {
@@ -268,7 +260,8 @@ async function main() {
             },
         });
     }
-    console.log('✅ Created users (password: Jabu2580$)');
+    console.log('✅ Created builder user (password: password123)');
+    console.log('ℹ️ Admin user should be created manually if needed.');
     console.log('🎉 Seeding complete!');
 }
 main()

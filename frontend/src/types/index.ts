@@ -1,4 +1,22 @@
 // Builder/Contractor Types
+
+// Operating hours for each day of the week
+export interface DayHours {
+  open: string;    // e.g., "08:00"
+  close: string;   // e.g., "17:00"
+  closed: boolean; // true if closed on this day
+}
+
+export interface OperatingHours {
+  monday: DayHours;
+  tuesday: DayHours;
+  wednesday: DayHours;
+  thursday: DayHours;
+  friday: DayHours;
+  saturday: DayHours;
+  sunday: DayHours;
+}
+
 export interface Builder {
   id: string;
   slug: string;
@@ -20,10 +38,12 @@ export interface Builder {
   rating: number;
   reviewCount: number;
   verified: boolean;
+  escrowAvailable?: boolean; // Trust signal
   serviceAttributes: ServiceAttribute[];
   callOutFee?: number; // e.g. 500
   hourlyRate?: number; // e.g. 850
   serviceAreas?: string[]; // e.g. ['Sandton', 'Midrand']
+  operatingHours?: OperatingHours;
   photos: string[];
   projects: Project[];
   reviews: Review[];
@@ -107,6 +127,7 @@ export interface Project {
   completedAt?: Date;
   province: Province;
   city: string;
+  quoteId?: string; // Link to accepted quote
 }
 
 // Reviews
@@ -121,19 +142,81 @@ export interface Review {
   createdAt: Date;
 }
 
+// Quote Status Constants
+export const QUOTE_STATUS = {
+  QUOTE_REQUESTED: 'quote_requested',
+  REQUEST_ACCEPTED: 'request_accepted',
+  REQUEST_REJECTED: 'request_rejected',
+  REQUEST_CONSIDERING: 'request_considering',
+  QUOTED: 'quoted',
+  QUOTE_ACCEPTED: 'quote_accepted',
+  QUOTE_REJECTED: 'quote_rejected',
+  COUNTER_PROPOSAL: 'counter_proposal',
+  PROJECT_CREATED: 'project_created',
+  COMPLETED: 'completed',
+} as const;
+
+export type QuoteStatus = typeof QUOTE_STATUS[keyof typeof QUOTE_STATUS];
+
+// Quotation Item
+export interface QuotationItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  unit?: string;
+  totalPrice: number;
+}
+
 // Quote Request
 export interface QuoteRequest {
   id: string;
   builderId: string;
+  builder?: {
+    id: string;
+    name: string;
+    slug: string;
+    logo?: string;
+    phone?: string;
+    email?: string;
+  };
+  // Consumer Details
   name: string;
   email: string;
   phone: string;
-  description: string;
-  projectType: string;
-  location: Province;
-  city: string;
-  preferredContact: 'phone' | 'email' | 'whatsapp';
+  location?: string;
+  // Project Details
+  title?: string;
+  message: string;
+  status: QuoteStatus;
+  // Quotation Response
+  totalAmount?: number;
+  currency?: string;
+  validUntil?: Date;
+  notes?: string;
+  respondedAt?: Date;
+  // Counter-proposal
+  proposedAmount?: number;
+  proposalNotes?: string;
+  parentQuoteId?: string;
+  // Items
+  items?: QuotationItem[];
+  // Project link
+  project?: Project;
+  // User
+  userId?: string;
   createdAt: Date;
+  updatedAt?: Date;
+}
+
+// Grouped quotes by client
+export interface ClientQuoteGroup {
+  clientEmail: string;
+  clientName: string;
+  userId?: string;
+  quotes: QuoteRequest[];
+  totalQuotes: number;
+  acceptedQuotes: number;
 }
 
 // Filter state
@@ -145,3 +228,27 @@ export interface BuilderFilters {
   serviceAttributes?: ServiceAttribute[];
   searchQuery?: string;
 }
+
+// Auth Types
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  builderId?: string;
+  image?: string;
+}
+
+// Admin Stats
+export interface AdminStats {
+  totalUsers: number;
+  pendingSignups: number;
+  pendingEdits: number;
+  pendingMedia: number;
+}
+

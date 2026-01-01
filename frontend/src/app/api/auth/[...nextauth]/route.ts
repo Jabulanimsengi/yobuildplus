@@ -1,9 +1,14 @@
 import NextAuth, { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
+import GoogleProvider from "next-auth/providers/google"
 import { authApi } from "@/lib/api"
 
 export const authOptions: NextAuthOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -38,11 +43,21 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
+      // Initial sign in
       if (user) {
-        token.role = user.role
+        // Try to get role from cookies for initial Google sign up
+        const { cookies } = await import("next/headers")
+        const cookieStore = await cookies()
+        const pendingRole = cookieStore.get('pendingRole')?.value
+
+        token.role = user.role || pendingRole || 'consumer' // Default to consumer if no cookie
         token.builderId = user.builderId
         token.accessToken = user.accessToken
+      }
+      // For Google OAuth, we can use the access token from the account
+      if (account?.provider === 'google') {
+        token.accessToken = account.access_token
       }
       return token
     },
@@ -67,3 +82,4 @@ export const authOptions: NextAuthOptions = {
 const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }
+

@@ -63,7 +63,7 @@ export function HorizontalCategoryBar({
                     variant="ghost"
                     size="icon"
                     onClick={() => scroll('left')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 bg-white shadow-lg hover:bg-slate-50 rounded-full border border-slate-200"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 bg-white shadow-lg hover:bg-slate-50:bg-slate-700 rounded-full border border-slate-200"
                 >
                     <ChevronLeft className="h-5 w-5 text-slate-600" />
                 </Button>
@@ -72,20 +72,20 @@ export function HorizontalCategoryBar({
             {/* Scrollable Container */}
             <div
                 ref={scrollContainerRef}
-                className="flex items-center gap-2 overflow-x-auto scrollbar-hide px-12 py-3"
+                className="flex items-center gap-2 overflow-x-auto scrollbar-hide px-10 md:px-12 py-3"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
                 {/* All Categories Button */}
                 <button
                     onClick={() => onCategoryChange(undefined)}
                     className={cn(
-                        'flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 border-2',
+                        'flex items-center gap-2 px-4 py-2 md:py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 border-2',
                         !selectedCategory
                             ? 'bg-[#0EA5E9] text-white border-[#0EA5E9] shadow-lg'
                             : 'bg-white text-slate-600 border-slate-200 hover:border-[#0EA5E9] hover:text-[#0EA5E9]'
                     )}
                 >
-                    All Categories
+                    All
                 </button>
 
                 {/* Category Buttons */}
@@ -94,13 +94,13 @@ export function HorizontalCategoryBar({
                         key={category.id}
                         onClick={() => onCategoryChange(category.slug)}
                         className={cn(
-                            'flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 border-2',
+                            'flex items-center gap-2 px-4 py-2 md:py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all flex-shrink-0 border-2',
                             selectedCategory === category.slug
                                 ? 'bg-[#0EA5E9] text-white border-[#0EA5E9] shadow-lg'
                                 : 'bg-white text-slate-600 border-slate-200 hover:border-[#0EA5E9] hover:text-[#0EA5E9]'
                         )}
                     >
-                        <span className="text-lg">{category.icon}</span>
+                        <span className="hidden md:inline text-lg">{category.icon}</span>
                         <span>{category.name}</span>
                     </button>
                 ))}
@@ -112,7 +112,7 @@ export function HorizontalCategoryBar({
                     variant="ghost"
                     size="icon"
                     onClick={() => scroll('right')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 bg-white shadow-lg hover:bg-slate-50 rounded-full border border-slate-200"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 bg-white shadow-lg hover:bg-slate-50:bg-slate-700 rounded-full border border-slate-200"
                 >
                     <ChevronRight className="h-5 w-5 text-slate-600" />
                 </Button>

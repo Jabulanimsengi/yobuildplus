@@ -23,7 +23,7 @@ exports.AuthModule = AuthModule = __decorate([
             prisma_module_1.PrismaModule,
             passport_1.PassportModule.register({ defaultStrategy: 'jwt' }),
             jwt_1.JwtModule.register({
-                secret: process.env.JWT_SECRET || 'yobuildplus-secret-key',
+                secret: process.env.JWT_SECRET,
                 signOptions: { expiresIn: '7d' },
             }),
         ],

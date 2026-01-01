@@ -1,7 +1,12 @@
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from "@/components/providers/AuthProvider";
+import { StickyQuoteButton } from "@/components/quotes/StickyQuoteButton";
+import { LoadSheddingBanner } from "@/components/banners/LoadSheddingBanner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Yobuildplus - Find Trusted Builders & Contractors in South Africa",
+  title: "Yobuildplus - Find Trusted Contractors in South Africa",
   description: "Connect with verified builders, plumbers, electricians, and contractors across South Africa. Get quotes from trusted professionals for your construction and home improvement projects.",
   keywords: "builders, contractors, plumbers, electricians, construction, South Africa, home improvement, renovations",
 };
@@ -33,11 +38,16 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
-        <Header />
-        <main className="flex-1">
-          {children}
-        </main>
-        <Footer />
+        <AuthProvider>
+          <Header />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
+          <Toaster />
+          <StickyQuoteButton />
+          <LoadSheddingBanner />
+        </AuthProvider>
       </body>
     </html>
   );

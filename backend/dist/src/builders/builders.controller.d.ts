@@ -1,4 +1,5 @@
 import { BuildersService } from './builders.service';
+import { UpdateBuilderDto } from './dto/update-builder.dto';
 export declare class BuildersController {
     private readonly buildersService;
     constructor(buildersService: BuildersService);
@@ -49,7 +50,13 @@ export declare class BuildersController {
         callOutFee: number | null;
         hourlyRate: number | null;
         serviceAreas: string[];
+        operatingHours: import("@prisma/client/runtime/library").JsonValue | null;
         approvalStatus: string;
+        subscriptionPlan: string;
+        subscriptionStatus: string;
+        subscriptionStart: Date | null;
+        subscriptionEnd: Date | null;
+        commissionRate: number;
     })[]>;
     findOne(slug: string): Promise<{
         subcategories: {
@@ -77,11 +84,12 @@ export declare class BuildersController {
             updatedAt: Date;
             city: string;
             builderId: string;
-            province: string;
             title: string;
             status: string;
             images: string[];
+            province: string;
             completedAt: Date | null;
+            quoteId: string | null;
         }[];
         reviews: {
             id: string;
@@ -121,23 +129,15 @@ export declare class BuildersController {
         callOutFee: number | null;
         hourlyRate: number | null;
         serviceAreas: string[];
+        operatingHours: import("@prisma/client/runtime/library").JsonValue | null;
         approvalStatus: string;
+        subscriptionPlan: string;
+        subscriptionStatus: string;
+        subscriptionStart: Date | null;
+        subscriptionEnd: Date | null;
+        commissionRate: number;
     }>;
-    updateProfile(id: string, updateData: {
-        name?: string;
-        description?: string;
-        phone?: string;
-        email?: string;
-        website?: string;
-        address?: string;
-        logo?: string;
-        coverImage?: string;
-        photos?: string[];
-        callOutFee?: number;
-        hourlyRate?: number;
-        serviceAreas?: string[];
-        serviceAttributes?: string[];
-    }): Promise<{
+    updateProfile(id: string, updateData: UpdateBuilderDto, req: any): Promise<{
         id: string;
         slug: string;
         name: string;
@@ -165,6 +165,12 @@ export declare class BuildersController {
         callOutFee: number | null;
         hourlyRate: number | null;
         serviceAreas: string[];
+        operatingHours: import("@prisma/client/runtime/library").JsonValue | null;
         approvalStatus: string;
+        subscriptionPlan: string;
+        subscriptionStatus: string;
+        subscriptionStart: Date | null;
+        subscriptionEnd: Date | null;
+        commissionRate: number;
     }>;
 }

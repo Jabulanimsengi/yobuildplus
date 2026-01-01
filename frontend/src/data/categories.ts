@@ -3,10 +3,10 @@ import { Category } from '@/types';
 export const categories: Category[] = [
     {
         id: 'structural',
-        slug: 'structural-core-construction',
-        name: 'Structural & Core Construction',
+        slug: 'building-roofing',
+        name: 'Building & Roofing',
         icon: '🏗️',
-        description: 'The shell - main structure and stability of buildings',
+        description: 'Builders, roofers and general construction work',
         subcategories: [
             {
                 id: 'general-building',
@@ -61,10 +61,10 @@ export const categories: Category[] = [
     },
     {
         id: 'electrical-plumbing',
-        slug: 'electrical-plumbing-systems',
-        name: 'Electrical, Plumbing & Systems',
+        slug: 'electrical-plumbing-solar',
+        name: 'Electrical, Plumbing & Solar',
         icon: '⚡',
-        description: 'The guts - essential utilities and systems',
+        description: 'Electricians, plumbers and solar installers',
         subcategories: [
             {
                 id: 'electricians',
@@ -119,10 +119,10 @@ export const categories: Category[] = [
     },
     {
         id: 'interiors',
-        slug: 'interiors-finishing',
-        name: 'Interiors & Finishing',
+        slug: 'renovations-interiors',
+        name: 'Renovations & Interiors',
         icon: '🎨',
-        description: 'The look - aesthetics and usability of interiors',
+        description: 'Kitchen, bathroom and interior upgrades',
         subcategories: [
             {
                 id: 'painting',
@@ -184,10 +184,10 @@ export const categories: Category[] = [
     },
     {
         id: 'security-exterior',
-        slug: 'security-exterior',
-        name: 'Metalwork, Security & Exterior',
+        slug: 'security-gates-fencing',
+        name: 'Security, Gates & Fencing',
         icon: '🔒',
-        description: 'The perimeter - security and external features',
+        description: 'CCTV, alarms, electric fencing and gate motors',
         subcategories: [
             {
                 id: 'welding',
@@ -242,10 +242,10 @@ export const categories: Category[] = [
     },
     {
         id: 'landscaping',
-        slug: 'landscaping-outdoor',
-        name: 'Landscaping & Outdoor Living',
+        slug: 'garden-pools',
+        name: 'Garden & Pools',
         icon: '🌿',
-        description: 'The garden and leisure areas',
+        description: 'Landscaping, gardening and swimming pool services',
         subcategories: [
             {
                 id: 'landscaping-design',
@@ -287,9 +287,9 @@ export const categories: Category[] = [
     {
         id: 'general-services',
         slug: 'general-services',
-        name: 'General Services & Maintenance',
+        name: 'Handyman & Maintenance',
         icon: '🔧',
-        description: 'Smaller jobs and specialized services',
+        description: 'Odd jobs, repairs and specialized services',
         subcategories: [
             {
                 id: 'handyman',
@@ -366,7 +366,7 @@ export const categories: Category[] = [
     {
         id: 'professional-planning',
         slug: 'professional-planning',
-        name: 'Professional Planning',
+        name: 'Architects & Designers',
         icon: '📐',
         description: 'Planning and design professionals',
         subcategories: [
@@ -403,9 +403,9 @@ export const categories: Category[] = [
     {
         id: 'materials-supplies',
         slug: 'materials-supplies',
-        name: 'Building Materials & Supplies',
+        name: 'Building Supplies',
         icon: '🧱',
-        description: 'Suppliers of raw materials and hardware',
+        description: 'Materials and hardware suppliers',
         subcategories: [
             {
                 id: 'sand-stone-cement',

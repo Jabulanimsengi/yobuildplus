@@ -2,13 +2,54 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
-import { Briefcase, ChevronDown } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Briefcase, ChevronDown, Clock, Shield, Phone, Zap, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { StarRating } from '@/components/ui/StarRating';
-import { Builder } from '@/types';
+import { PaymentProtectionModal } from '@/components/modals/PaymentProtectionModal';
+import { Builder, OperatingHours } from '@/types';
 import { cn } from '@/lib/utils';
+
+// Check if contractor offers 24/7 emergency service
+function hasEmergencyService(serviceAttributes: string[]): boolean {
+    return serviceAttributes.some(attr =>
+        attr.toLowerCase().includes('24/7') ||
+        attr.toLowerCase().includes('emergency')
+    );
+}
+
+// Helper function to check if business is currently open
+function getOpenStatus(operatingHours?: OperatingHours): { isOpen: boolean; statusText: string } {
+    if (!operatingHours) {
+        return { isOpen: true, statusText: 'Open' }; // Default to open if no hours set
+    }
+
+    const now = new Date();
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
+    const currentDay = days[now.getDay()];
+    const todayHours = operatingHours[currentDay];
+
+    if (todayHours.closed) {
+        return { isOpen: false, statusText: 'Closed Today' };
+    }
+
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    const [openHour, openMin] = todayHours.open.split(':').map(Number);
+    const [closeHour, closeMin] = todayHours.close.split(':').map(Number);
+    const openTime = openHour * 60 + openMin;
+    const closeTime = closeHour * 60 + closeMin;
+
+    if (currentTime >= openTime && currentTime < closeTime) {
+        // Check if closing soon (within 1 hour)
+        if (closeTime - currentTime <= 60) {
+            return { isOpen: true, statusText: 'Closing Soon' };
+        }
+        return { isOpen: true, statusText: 'Open Now' };
+    }
+
+    return { isOpen: false, statusText: 'Closed' };
+}
 
 interface CompanyRowCardProps {
     builder: Builder;
@@ -23,11 +64,22 @@ export function CompanyRowCard({ builder, className }: CompanyRowCardProps) {
         ? builder.provinces
         : builder.provinces.slice(0, maxVisibleProvinces);
 
+    const { isOpen, statusText } = useMemo(
+        () => getOpenStatus(builder.operatingHours),
+        [builder.operatingHours]
+    );
+
+    const isEmergencyAvailable = hasEmergencyService(builder.serviceAttributes);
+
     return (
         <div
+            id={`builder-${builder.id}`}
             className={cn(
                 'flex flex-col md:flex-row md:items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl border transition-all hover:shadow-lg',
-                'bg-white border-slate-200 hover:border-[#0EA5E9]',
+                builder.verified
+                    ? 'bg-sky-50/20 border-[#0EA5E9]/60 shadow-sm hover:border-[#0EA5E9]'
+                    : 'bg-white border-slate-200 hover:border-[#0EA5E9]',
+                isEmergencyAvailable && !builder.verified && 'ring-1 ring-red-100',
                 className
             )}
         >
@@ -48,20 +100,104 @@ export function CompanyRowCard({ builder, className }: CompanyRowCardProps) {
                         </div>
                     )}
                 </div>
-                {/* Name */}
-                <h3 className="font-semibold text-slate-800 truncate text-sm flex-1">
-                    {builder.name}
-                </h3>
+                {/* Name + Status */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                        <h3 className="font-semibold text-slate-800 truncate text-sm">
+                            {builder.name}
+                        </h3>
+                        {builder.verified && (
+                            <CheckCircle className="h-3.5 w-3.5 text-[#0EA5E9]" />
+                        )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5">
+                        <Badge
+                            variant="outline"
+                            className={cn(
+                                'text-[10px] px-1.5 py-0',
+                                isOpen
+                                    ? statusText === 'Closing Soon'
+                                        ? 'bg-amber-50 border-amber-400 text-amber-700'
+                                        : 'bg-emerald-50 border-emerald-400 text-emerald-700'
+                                    : 'bg-slate-100 border-slate-300 text-slate-500'
+                            )}
+                        >
+                            <Clock className="h-2.5 w-2.5 mr-1" />
+                            {statusText}
+                        </Badge>
+                        {isEmergencyAvailable && (
+                            <Badge className="bg-red-500 text-white border-0 text-[9px] px-1.5 py-0 flex items-center">
+                                <Zap className="h-2.5 w-2.5 mr-0.5" />
+                                24/7
+                            </Badge>
+                        )}
+                        {builder.escrowAvailable && (
+                            <PaymentProtectionModal>
+                                <Badge variant="outline" className="bg-emerald-50 border-emerald-200 text-emerald-700 text-[9px] px-1.5 py-0 flex items-center cursor-pointer hover:bg-emerald-100 transition-colors">
+                                    <Shield className="h-2.5 w-2.5 mr-0.5" />
+                                    Protected
+                                </Badge>
+                            </PaymentProtectionModal>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* Desktop: Company Name - Fixed width for alignment */}
             <div className="hidden md:block w-[280px] lg:w-[320px] flex-shrink-0">
-                <div className="bg-slate-50 rounded-lg px-4 py-3 border border-slate-200">
-                    <h3 className="font-semibold text-slate-800 truncate text-sm md:text-base">
-                        {builder.name}
-                    </h3>
+                <div className={cn("rounded-lg px-4 py-3 border transition-colors", builder.verified ? "bg-white border-[#0EA5E9]/20" : "bg-slate-50 border-slate-200")}>
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                            <h3 className="font-semibold text-slate-800 truncate text-sm md:text-base">
+                                {builder.name}
+                            </h3>
+                            {builder.verified && (
+                                <div className="text-[#0EA5E9]" title="Verified Contractor">
+                                    <CheckCircle className="h-4 w-4" />
+                                </div>
+                            )}
+                        </div>
+                        <Badge
+                            variant="outline"
+                            className={cn(
+                                'text-[10px] px-1.5 py-0 flex-shrink-0',
+                                isOpen
+                                    ? statusText === 'Closing Soon'
+                                        ? 'bg-amber-50 border-amber-400 text-amber-700'
+                                        : 'bg-emerald-50 border-emerald-400 text-emerald-700'
+                                    : 'bg-slate-100 border-slate-300 text-slate-500'
+                            )}
+                        >
+                            <Clock className="h-2.5 w-2.5 mr-1" />
+                            {statusText}
+                        </Badge>
+                    </div>
+                    {/* Trust Badges Row */}
+                    <div className="flex items-center gap-1.5 mt-2">
+                        {isEmergencyAvailable && (
+                            <Badge className="bg-red-500 text-white border-0 text-[10px] px-1.5 py-0.5">
+                                <Zap className="h-3 w-3 mr-0.5" />
+                                24/7 Emergency
+                            </Badge>
+                        )}
+                        {builder.verified && (
+                            <Badge className="bg-[#0EA5E9] text-white border-0 text-[10px] px-1.5 py-0.5">
+                                Verified
+                            </Badge>
+                        )}
+                        {builder.escrowAvailable && (
+                            <PaymentProtectionModal>
+                                <Badge variant="outline" className="bg-emerald-50 border-emerald-200 text-emerald-700 text-[10px] px-1.5 py-0.5 font-medium cursor-pointer hover:bg-emerald-100 transition-colors">
+                                    <Shield className="h-3 w-3 mr-0.5" />
+                                    Escrow Protected
+                                </Badge>
+                            </PaymentProtectionModal>
+                        )}
+                    </div>
                 </div>
             </div>
+
 
             {/* Desktop: Logo - Fixed size with primary blue accent border */}
             <div className="hidden md:block relative h-12 w-12 rounded-lg flex-shrink-0 overflow-hidden border-2 border-[#0EA5E9] bg-slate-50">
@@ -99,7 +235,7 @@ export function CompanyRowCard({ builder, className }: CompanyRowCardProps) {
             </div>
 
             {/* View Portfolio Button - Full width on mobile */}
-            <Link href={`/builders/${builder.slug}`} className="flex-shrink-0 md:flex-shrink">
+            <Link href={`/contractors/${builder.slug}`} className="flex-shrink-0 md:flex-shrink">
                 <Button
                     size="sm"
                     className="w-full md:w-auto bg-[#F97316] hover:bg-[#EA580C] text-white font-medium text-xs md:text-sm whitespace-nowrap rounded-lg shadow-sm"

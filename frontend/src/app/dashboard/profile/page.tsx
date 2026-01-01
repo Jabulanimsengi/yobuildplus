@@ -1,18 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
-    Save, Building2, Phone, Mail, Globe, MapPin,
+    Save, Building2, Phone, Mail, Globe, MapPin, Clock,
     X, ImageIcon, Banknote, Plus, Briefcase, Trash2, Loader2, CheckCircle2
 } from 'lucide-react';
 import { buildersApi } from '@/lib/api';
 import CloudinaryUploadWidget from '@/components/ui/cloudinary-upload-widget';
+import { OperatingHours, DayHours } from '@/types';
+import { getAllSubcategories } from '@/data/categories';
+import { locationsData } from '@/data/locations';
+import { MapboxAddressAutocomplete } from '@/components/ui/mapbox-address-autocomplete';
+
+const DEFAULT_HOURS: DayHours = { open: '08:00', close: '17:00', closed: false };
+const DEFAULT_OPERATING_HOURS: OperatingHours = {
+    monday: { ...DEFAULT_HOURS },
+    tuesday: { ...DEFAULT_HOURS },
+    wednesday: { ...DEFAULT_HOURS },
+    thursday: { ...DEFAULT_HOURS },
+    friday: { ...DEFAULT_HOURS },
+    saturday: { open: '08:00', close: '13:00', closed: false },
+    sunday: { open: '00:00', close: '00:00', closed: true },
+};
 
 interface ProfileData {
     name: string;
@@ -31,6 +47,7 @@ interface ProfileData {
     logo: string | null;
     coverImage: string | null;
     photos: string[];
+    operatingHours: OperatingHours;
 }
 
 export default function ProfileEditorPage() {
@@ -38,6 +55,7 @@ export default function ProfileEditorPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [builderId, setBuilderId] = useState<string | null>(null);
 
     // Form State
@@ -58,40 +76,103 @@ export default function ProfileEditorPage() {
         logo: null,
         coverImage: null,
         photos: [],
+        operatingHours: DEFAULT_OPERATING_HOURS,
     });
 
     const [newService, setNewService] = useState('');
     const [newArea, setNewArea] = useState('');
 
-    // Fetch builder data on mount
+    // Autocomplete state
+    const [showServiceSuggestions, setShowServiceSuggestions] = useState(false);
+    const [showAreaSuggestions, setShowAreaSuggestions] = useState(false);
+    const serviceInputRef = useRef<HTMLDivElement>(null);
+    const areaInputRef = useRef<HTMLDivElement>(null);
+
+    // Get all available services from categories
+    const allServices = getAllSubcategories().map(sub => sub.name);
+
+    // Get all available locations flattened
+    const allLocations = Object.values(locationsData).flat();
+
+    // Filter suggestions based on input
+    const serviceSuggestions = newService.length >= 2
+        ? allServices.filter(s =>
+            s.toLowerCase().includes(newService.toLowerCase()) &&
+            !formData.serviceAttributes.includes(s)
+        ).slice(0, 8)
+        : [];
+
+    const areaSuggestions = newArea.length >= 2
+        ? allLocations.filter(loc =>
+            loc.toLowerCase().includes(newArea.toLowerCase()) &&
+            !formData.serviceAreas.includes(loc)
+        ).slice(0, 8)
+        : [];
+
+    // Close dropdowns when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (serviceInputRef.current && !serviceInputRef.current.contains(event.target as Node)) {
+                setShowServiceSuggestions(false);
+            }
+            if (areaInputRef.current && !areaInputRef.current.contains(event.target as Node)) {
+                setShowAreaSuggestions(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // Fetch builder data on mount - uses session.user.builderId
     useEffect(() => {
         async function fetchBuilderData() {
+            // Wait for session to load
+            if (!session?.user) {
+                setIsLoading(false);
+                return;
+            }
+
             try {
                 setIsLoading(true);
-                // For demo, we'll use the first builder from the list
-                // In production, this would come from the session
-                const builders = await buildersApi.getAll();
-                if (builders.length > 0) {
-                    const builder = builders[0]; // Use first builder for demo
-                    setBuilderId(builder.id);
-                    setFormData({
-                        name: builder.name || '',
-                        yearStarted: builder.yearStarted || 2020,
-                        teamSize: builder.teamSize || 1,
-                        projectsCompleted: builder.projectsCompleted || 0,
-                        description: builder.description || '',
-                        phone: builder.phone || '',
-                        email: builder.email || '',
-                        website: builder.website || '',
-                        address: builder.address || '',
-                        callOutFee: builder.callOutFee || 0,
-                        hourlyRate: builder.hourlyRate || 0,
-                        serviceAreas: builder.serviceAreas || [],
-                        serviceAttributes: builder.serviceAttributes || [],
-                        logo: builder.logo || null,
-                        coverImage: builder.coverImage || null,
-                        photos: builder.photos || [],
-                    });
+
+                // Check if user has an existing builder profile
+                const userBuilderId = session.user.builderId;
+
+                if (userBuilderId) {
+                    // User has an existing profile - fetch it
+                    try {
+                        const builder = await buildersApi.getBySlug(userBuilderId);
+                        setBuilderId(builder.id);
+                        setFormData({
+                            name: builder.name || '',
+                            yearStarted: builder.yearStarted || 2020,
+                            teamSize: builder.teamSize || 1,
+                            projectsCompleted: builder.projectsCompleted || 0,
+                            description: builder.description || '',
+                            phone: builder.phone || '',
+                            email: builder.email || '',
+                            website: builder.website || '',
+                            address: builder.address || '',
+                            callOutFee: builder.callOutFee || 0,
+                            hourlyRate: builder.hourlyRate || 0,
+                            serviceAreas: builder.serviceAreas || [],
+                            serviceAttributes: (builder.serviceAttributes as string[]) || [],
+                            logo: builder.logo || null,
+                            coverImage: builder.coverImage || null,
+                            photos: builder.photos || [],
+                            operatingHours: builder.operatingHours || DEFAULT_OPERATING_HOURS,
+                        });
+                    } catch (err) {
+                        console.error('Failed to fetch existing profile:', err);
+                        // Profile doesn't exist yet - user will create one
+                    }
+                } else {
+                    // New user - pre-fill email and name from session
+                    setFormData(prev => ({
+                        ...prev,
+                        email: session.user?.email || '',
+                        name: session.user?.name || '',
+                    }));
                 }
             } catch (error) {
                 console.error('Failed to fetch builder data:', error);
@@ -101,17 +182,21 @@ export default function ProfileEditorPage() {
         }
 
         fetchBuilderData();
-    }, []);
+    }, [session]);
 
-    // Handle save
-    const handleSave = async () => {
-        if (!builderId) return;
+    // Handle save with confirmation
+    const handleSaveClick = () => {
+        setShowConfirmDialog(true);
+    };
+
+    const confirmSave = async () => {
+        setShowConfirmDialog(false);
 
         try {
             setIsSaving(true);
             setSaveSuccess(false);
 
-            await buildersApi.updateProfile(builderId, {
+            const profileData = {
                 name: formData.name,
                 description: formData.description,
                 phone: formData.phone,
@@ -124,8 +209,22 @@ export default function ProfileEditorPage() {
                 callOutFee: formData.callOutFee,
                 hourlyRate: formData.hourlyRate,
                 serviceAreas: formData.serviceAreas,
-                serviceAttributes: formData.serviceAttributes,
-            });
+                serviceAttributes: formData.serviceAttributes as any,
+                operatingHours: formData.operatingHours,
+            };
+
+            if (builderId) {
+                // Update existing profile
+                await buildersApi.updateProfile(builderId, profileData, session?.accessToken);
+            } else {
+                // Create new profile
+                if (!session?.accessToken) {
+                    alert('You must be logged in to create a profile.');
+                    return;
+                }
+                const newBuilder = await buildersApi.createProfile(profileData, session.accessToken);
+                setBuilderId(newBuilder.id);
+            }
 
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
@@ -143,7 +242,16 @@ export default function ProfileEditorPage() {
         if (newService && !formData.serviceAttributes.includes(newService)) {
             setFormData({ ...formData, serviceAttributes: [...formData.serviceAttributes, newService] });
             setNewService('');
+            setShowServiceSuggestions(false);
         }
+    };
+
+    const selectService = (service: string) => {
+        if (!formData.serviceAttributes.includes(service)) {
+            setFormData({ ...formData, serviceAttributes: [...formData.serviceAttributes, service] });
+        }
+        setNewService('');
+        setShowServiceSuggestions(false);
     };
 
     const removeService = (item: string) => {
@@ -155,7 +263,16 @@ export default function ProfileEditorPage() {
         if (newArea && !formData.serviceAreas.includes(newArea)) {
             setFormData({ ...formData, serviceAreas: [...formData.serviceAreas, newArea] });
             setNewArea('');
+            setShowAreaSuggestions(false);
         }
+    };
+
+    const selectArea = (area: string) => {
+        if (!formData.serviceAreas.includes(area)) {
+            setFormData({ ...formData, serviceAreas: [...formData.serviceAreas, area] });
+        }
+        setNewArea('');
+        setShowAreaSuggestions(false);
     };
 
     const removeArea = (item: string) => {
@@ -170,6 +287,19 @@ export default function ProfileEditorPage() {
 
     const removePhoto = (url: string) => {
         setFormData({ ...formData, photos: formData.photos.filter(p => p !== url) });
+    };
+
+    const updateHours = (day: keyof OperatingHours, field: keyof DayHours, value: string | boolean) => {
+        setFormData({
+            ...formData,
+            operatingHours: {
+                ...formData.operatingHours,
+                [day]: {
+                    ...formData.operatingHours[day],
+                    [field]: value
+                }
+            }
+        });
     };
 
     if (isLoading) {
@@ -194,12 +324,12 @@ export default function ProfileEditorPage() {
                             <CheckCircle2 className="h-4 w-4 mr-1" /> Saved!
                         </span>
                     )}
-                    <Button variant="outline" onClick={() => window.open(`/builders/${formData.name.toLowerCase().replace(/\s+/g, '-')}`, '_blank')}>
+                    <Button variant="outline" onClick={() => window.open(`/contractors/${formData.name.toLowerCase().replace(/\s+/g, '-')}`, '_blank')}>
                         View Public Profile
                     </Button>
                     <Button
                         className="bg-[#0EA5E9] hover:bg-[#0284C7] text-white"
-                        onClick={handleSave}
+                        onClick={handleSaveClick}
                         disabled={isSaving}
                     >
                         {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
@@ -209,9 +339,10 @@ export default function ProfileEditorPage() {
             </div>
 
             <Tabs defaultValue="general" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 lg:w-[600px] mb-8">
+                <TabsList className="grid w-full grid-cols-5 lg:w-[750px] mb-8">
                     <TabsTrigger value="general">Details</TabsTrigger>
                     <TabsTrigger value="rates">Services & Rates</TabsTrigger>
+                    <TabsTrigger value="hours">Operating Hours</TabsTrigger>
                     <TabsTrigger value="media">Media & Portfolio</TabsTrigger>
                     <TabsTrigger value="projects">Projects</TabsTrigger>
                 </TabsList>
@@ -325,14 +456,11 @@ export default function ProfileEditorPage() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Physical Address / Headquarters</label>
-                                    <div className="relative">
-                                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                                        <Input
-                                            value={formData.address}
-                                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                            className="pl-10"
-                                        />
-                                    </div>
+                                    <MapboxAddressAutocomplete
+                                        value={formData.address}
+                                        onChange={(address) => setFormData({ ...formData, address })}
+                                        placeholder="Start typing your address..."
+                                    />
                                 </div>
                             </div>
                         </CardContent>
@@ -391,23 +519,42 @@ export default function ProfileEditorPage() {
                                 <label className="block text-sm font-medium text-slate-700 mb-3">Skills & Services</label>
                                 <div className="flex flex-wrap gap-2 mb-4 p-4 bg-slate-50 rounded-lg border border-slate-100">
                                     {formData.serviceAttributes.map(service => (
-                                        <Badge key={service} variant="secondary" className="gap-1 pl-3 pr-2 py-1.5 text-sm bg-white border-slate-200">
+                                        <Badge key={service} variant="secondary" className="gap-1 pl-3 pr-2 py-1.5 text-sm bg-white border border-slate-200 text-slate-700">
                                             {service}
-                                            <button onClick={() => removeService(service)} className="hover:text-red-500 text-slate-400 ml-1">
+                                            <button type="button" onClick={() => removeService(service)} className="hover:text-red-500 text-slate-400 ml-1">
                                                 <X className="h-3 w-3" />
                                             </button>
                                         </Badge>
                                     ))}
                                     {formData.serviceAttributes.length === 0 && <span className="text-slate-400 text-sm italic">No services added yet.</span>}
                                 </div>
-                                <form onSubmit={handleAddService} className="flex gap-2 max-w-md">
-                                    <Input
-                                        placeholder="Add service (e.g. Waterproofing)"
-                                        value={newService}
-                                        onChange={(e) => setNewService(e.target.value)}
-                                    />
-                                    <Button type="submit" variant="outline" disabled={!newService}><Plus className="h-4 w-4" /></Button>
-                                </form>
+                                <div ref={serviceInputRef} className="relative max-w-md">
+                                    <form onSubmit={handleAddService} className="flex gap-2">
+                                        <Input
+                                            placeholder="Type to search services (e.g. Waterproofing)"
+                                            value={newService}
+                                            onChange={(e) => setNewService(e.target.value)}
+                                            onFocus={() => setShowServiceSuggestions(true)}
+                                        />
+                                        <Button type="submit" variant="outline" disabled={!newService}><Plus className="h-4 w-4" /></Button>
+                                    </form>
+                                    {showServiceSuggestions && serviceSuggestions.length > 0 && (
+                                        <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                            {serviceSuggestions.map((service, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    type="button"
+                                                    className="w-full px-4 py-2 text-left hover:bg-[#0EA5E9]/10 text-sm text-slate-700 border-b border-slate-100 last:border-0"
+                                                    onClick={() => selectService(service)}
+                                                >
+                                                    <Briefcase className="inline h-4 w-4 mr-2 text-slate-400" />
+                                                    {service}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <p className="text-xs text-slate-500 mt-2">Start typing to see suggestions or add your own</p>
+                                </div>
                             </div>
 
                             {/* Service Areas */}
@@ -415,25 +562,93 @@ export default function ProfileEditorPage() {
                                 <label className="block text-sm font-medium text-slate-700 mb-3">Service Areas (Suburbs/Cities)</label>
                                 <div className="flex flex-wrap gap-2 mb-4 p-4 bg-slate-50 rounded-lg border border-slate-100">
                                     {formData.serviceAreas.map(area => (
-                                        <Badge key={area} variant="secondary" className="gap-1 pl-3 pr-2 py-1.5 text-sm bg-white border-slate-200">
+                                        <Badge key={area} variant="secondary" className="gap-1 pl-3 pr-2 py-1.5 text-sm bg-white border border-slate-200 text-slate-700">
                                             <MapPin className="h-3 w-3 text-slate-400" />
                                             {area}
-                                            <button onClick={() => removeArea(area)} className="hover:text-red-500 text-slate-400 ml-1">
+                                            <button type="button" onClick={() => removeArea(area)} className="hover:text-red-500 text-slate-400 ml-1">
                                                 <X className="h-3 w-3" />
                                             </button>
                                         </Badge>
                                     ))}
                                     {formData.serviceAreas.length === 0 && <span className="text-slate-400 text-sm italic">No areas added yet.</span>}
                                 </div>
-                                <form onSubmit={handleAddArea} className="flex gap-2 max-w-md">
-                                    <Input
-                                        placeholder="Add area (e.g. Midrand)"
-                                        value={newArea}
-                                        onChange={(e) => setNewArea(e.target.value)}
-                                    />
-                                    <Button type="submit" variant="outline" disabled={!newArea}><Plus className="h-4 w-4" /></Button>
-                                </form>
+                                <div ref={areaInputRef} className="relative max-w-md">
+                                    <form onSubmit={handleAddArea} className="flex gap-2">
+                                        <Input
+                                            placeholder="Type to search suburbs/cities (e.g. Sandton)"
+                                            value={newArea}
+                                            onChange={(e) => setNewArea(e.target.value)}
+                                            onFocus={() => setShowAreaSuggestions(true)}
+                                        />
+                                        <Button type="submit" variant="outline" disabled={!newArea}><Plus className="h-4 w-4" /></Button>
+                                    </form>
+                                    {showAreaSuggestions && areaSuggestions.length > 0 && (
+                                        <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                            {areaSuggestions.map((area, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    type="button"
+                                                    className="w-full px-4 py-2 text-left hover:bg-[#0EA5E9]/10 text-sm text-slate-700 border-b border-slate-100 last:border-0"
+                                                    onClick={() => selectArea(area)}
+                                                >
+                                                    <MapPin className="inline h-4 w-4 mr-2 text-slate-400" />
+                                                    {area}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <p className="text-xs text-slate-500 mt-2">Start typing to see South African suburbs and cities</p>
+                                </div>
                             </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* === OPERATING HOURS TAB === */}
+                <TabsContent value="hours" className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Clock className="h-5 w-5 text-[#0EA5E9]" />
+                                Operating Hours
+                            </CardTitle>
+                            <CardDescription>Set your business hours for each day of the week.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const).map((day) => (
+                                <div key={day} className="flex items-center gap-4 py-3 border-b border-slate-100 last:border-0">
+                                    <div className="w-28">
+                                        <span className="font-medium capitalize text-slate-700">{day}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Checkbox
+                                            id={`${day}-closed`}
+                                            checked={formData.operatingHours[day].closed}
+                                            onCheckedChange={(checked) => updateHours(day, 'closed', checked === true)}
+                                        />
+                                        <label htmlFor={`${day}-closed`} className="text-sm text-slate-600 cursor-pointer">
+                                            Closed
+                                        </label>
+                                    </div>
+                                    {!formData.operatingHours[day].closed && (
+                                        <div className="flex items-center gap-2 flex-1">
+                                            <Input
+                                                type="time"
+                                                value={formData.operatingHours[day].open}
+                                                onChange={(e) => updateHours(day, 'open', e.target.value)}
+                                                className="w-32"
+                                            />
+                                            <span className="text-slate-400">to</span>
+                                            <Input
+                                                type="time"
+                                                value={formData.operatingHours[day].close}
+                                                onChange={(e) => updateHours(day, 'close', e.target.value)}
+                                                className="w-32"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -563,6 +778,33 @@ export default function ProfileEditorPage() {
                     </Card>
                 </TabsContent>
             </Tabs>
-        </div>
+
+            {/* Confirmation Dialog */}
+            {showConfirmDialog && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+                        <h3 className="text-lg font-semibold text-slate-900 mb-2">Save Changes?</h3>
+                        <p className="text-slate-600 mb-6">
+                            Are you sure you want to save these changes to your profile? This will update your public listing immediately.
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowConfirmDialog(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                className="bg-[#0EA5E9] hover:bg-[#0284C7] text-white"
+                                onClick={confirmSave}
+                            >
+                                <Save className="h-4 w-4 mr-2" />
+                                Confirm & Save
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div >
     );
 }

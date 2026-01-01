@@ -3,97 +3,70 @@ import { Search, ArrowRight, CheckCircle, Star, Shield, Clock } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CompanyListSection } from '@/components/sections/CompanyListSection';
+import { QuotationCounter } from '@/components/ui/QuotationCounter';
+import { ConversationalSearch } from '@/components/search/ConversationalSearch';
 
 export default function HomePage() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section
-        className="relative text-white overflow-hidden"
-        style={{
-          background: `linear-gradient(135deg, #0EA5E9 0%, #0284C7 50%, #0369A1 100%)`
-        }}
-      >
-        {/* Background Pattern - Subtle blurs */}
-        <div className="absolute inset-0 opacity-15">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full filter blur-3xl -translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#F97316] rounded-full filter blur-3xl translate-x-1/2 translate-y-1/2 opacity-30" />
-        </div>
+      <section className="container mx-auto px-4 pt-6">
+        <div className="text-white bg-slate-900 rounded-2xl">
+          <div className="px-4 py-8 md:py-10 lg:py-12">
+            <div className="max-w-3xl mx-auto text-center">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 leading-tight text-white">
+                Find Trusted <span className="text-[#F97316]">Contractors</span> in SA
+              </h1>
+              <p className="text-sm md:text-base mb-5 md:mb-6 max-w-2xl mx-auto text-slate-300">
+                Connect with verified professionals across South Africa. From builders to electricians,
+                find the right expert for your project.
+              </p>
 
-        <div className="container mx-auto px-4 py-12 md:py-16 lg:py-20 relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 leading-tight text-white">
-              Find Trusted <span className="text-[#F97316]">Builders</span> & Contractors
-            </h1>
-            <p className="text-base md:text-lg mb-6 md:mb-8 max-w-2xl mx-auto text-white/90">
-              Connect with verified professionals across South Africa. From builders to electricians,
-              find the right expert for your project.
-            </p>
+              {/* Conversational Search */}
+              <ConversationalSearch className="mb-4" />
 
-            {/* Search Bar */}
-            <form
-              action="/builders"
-              method="get"
-              className="flex flex-col sm:flex-row gap-2 sm:gap-3 max-w-xl mx-auto mb-6"
-            >
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                <Input
-                  type="search"
-                  name="search"
-                  placeholder="What do you need? e.g., plumber, roof repair..."
-                  className="pl-12 h-12 md:h-14 text-slate-800 text-sm md:text-base rounded-lg shadow-lg border-2 border-white/20 bg-white focus:border-white"
-                />
+              {/* Secondary CTA */}
+              <div className="mt-4">
+                <Link href="/get-listed">
+                  <Button
+                    variant="outline"
+                    size="default"
+                    className="rounded-lg font-medium transition-all bg-white border-2 border-white text-slate-900 hover:bg-slate-100 text-xs md:text-sm"
+                  >
+                    List Your Business Free
+                  </Button>
+                </Link>
               </div>
-              <Button
-                type="submit"
-                size="lg"
-                className="h-12 md:h-14 px-6 md:px-8 rounded-lg shadow-lg font-semibold bg-[#F97316] hover:bg-[#EA580C] text-white text-sm md:text-base"
-              >
-                Search
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </form>
-
-            {/* Secondary CTA */}
-            <div className="mb-4 md:mb-6">
-              <Link href="/list-business">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="rounded-lg font-medium transition-all bg-white/95 border-2 border-white text-[#0369A1] hover:bg-white hover:text-[#0284C7] text-sm md:text-base"
-                >
-                  List Your Business
-                </Button>
-              </Link>
-            </div>
-
-            {/* Quick Links */}
-            <div className="flex flex-wrap justify-center gap-3 text-sm text-white/80">
-              <span>Popular:</span>
-              <Link href="/category/electricians" className="hover:text-white transition-colors">Electricians</Link>
-              <span className="text-white/40">•</span>
-              <Link href="/category/plumbing" className="hover:text-white transition-colors">Plumbers</Link>
-              <span className="text-white/40">•</span>
-              <Link href="/category/roofing" className="hover:text-white transition-colors">Roofing</Link>
-              <span className="text-white/40">•</span>
-              <Link href="/category/solar-inverter" className="hover:text-white transition-colors">Solar</Link>
             </div>
           </div>
-        </div>
-
-        {/* Wave Divider */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 50L60 45.7C120 41 240 33 360 35.3C480 38 600 52 720 55.3C840 58 960 52 1080 45.7C1200 40 1320 33 1380 30L1440 27V100H1380C1320 100 1200 100 1080 100C960 100 840 100 720 100C600 100 480 100 360 100C240 100 120 100 60 100H0V50Z" fill="#F8FAFC" />
-          </svg>
         </div>
       </section>
 
       {/* Trust Indicators */}
-      <section className="py-8 border-b border-border">
+      <section className="py-3 md:py-8 border-b border-border overflow-hidden">
         <div className="container mx-auto px-4">
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16 text-center">
+          {/* Mobile: Compact inline badges */}
+          <div className="flex md:hidden justify-center gap-2 flex-wrap">
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#0EA5E9]/10 rounded-full text-xs">
+              <CheckCircle className="h-3 w-3 text-[#0EA5E9]" />
+              <span className="font-semibold text-slate-700">500+ Pros</span>
+            </span>
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#F97316]/10 rounded-full text-xs">
+              <Star className="h-3 w-3 text-[#F97316]" />
+              <span className="font-semibold text-slate-700">4.8 Rating</span>
+            </span>
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#0D9488]/10 rounded-full text-xs">
+              <Shield className="h-3 w-3 text-[#0D9488]" />
+              <span className="font-semibold text-slate-700">Guaranteed</span>
+            </span>
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#0284C7]/10 rounded-full text-xs">
+              <Clock className="h-3 w-3 text-[#0284C7]" />
+              <span className="font-semibold text-slate-700">24/7</span>
+            </span>
+          </div>
+
+          {/* Desktop: Full layout */}
+          <div className="hidden md:flex flex-wrap justify-center gap-12">
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-full bg-[#0EA5E9]/10 flex items-center justify-center">
                 <CheckCircle className="h-6 w-6 text-[#0EA5E9]" />
@@ -130,6 +103,7 @@ export default function HomePage() {
                 <p className="text-sm text-muted-foreground">Emergency Services</p>
               </div>
             </div>
+            <QuotationCounter />
           </div>
         </div>
       </section>
@@ -137,18 +111,73 @@ export default function HomePage() {
       {/* Company List Section with Category Filtering */}
       <CompanyListSection />
 
+      {/* Payment Protection Section */}
+      <section className="py-16 bg-gradient-to-br from-emerald-50 to-white">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+              <Shield className="h-4 w-4" />
+              Payment Protection
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4">
+              Your Money is Protected
+            </h2>
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              We hold your payment securely until the job is done. No more worrying about scams or unfinished work.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="bg-white p-6 rounded-2xl border-2 border-slate-100 shadow-sm text-center">
+              <div className="h-14 w-14 rounded-xl bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+                <Shield className="h-7 w-7 text-emerald-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">Secure Escrow</h3>
+              <p className="text-slate-600 text-sm">
+                Pay directly to Yobuildplus. We hold your funds safely until project completion.
+              </p>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border-2 border-slate-100 shadow-sm text-center">
+              <div className="h-14 w-14 rounded-xl bg-blue-100 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="h-7 w-7 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">Verified Contractors</h3>
+              <p className="text-slate-600 text-sm">
+                Only pay for completed work. Contractors are vetted and reviewed.
+              </p>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border-2 border-slate-100 shadow-sm text-center">
+              <div className="h-14 w-14 rounded-xl bg-orange-100 flex items-center justify-center mx-auto mb-4">
+                <Clock className="h-7 w-7 text-orange-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">Milestone Payments</h3>
+              <p className="text-slate-600 text-sm">
+                Release funds in stages as work progresses. Stay in control.
+              </p>
+            </div>
+          </div>
+
+          <div className="text-center mt-8">
+            <Link href="/pricing">
+              <Button variant="outline" className="border-emerald-600 text-emerald-600 hover:bg-emerald-50">
+                Learn How It Works
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+
       {/* CTA Section */}
-      <section
-        className="py-20 text-white"
-        style={{
-          background: `linear-gradient(135deg, #0369A1 0%, #0284C7 50%, #0EA5E9 100%)`
-        }}
-      >
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-800">
             Are You a Builder or Contractor?
           </h2>
-          <p className="text-lg mb-8 max-w-2xl mx-auto text-white/90">
+          <p className="text-lg mb-8 max-w-2xl mx-auto text-slate-600">
             Join Yobuildplus and connect with thousands of potential customers looking for your services.
           </p>
           <Button

@@ -14,7 +14,7 @@ interface BuilderCardProps {
 
 export function BuilderCard({ builder, className }: BuilderCardProps) {
     return (
-        <Link href={`/builders/${builder.slug}`}>
+        <Link href={`/contractors/${builder.slug}`}>
             <Card
                 className={cn(
                     'group overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1',

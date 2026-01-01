@@ -23,6 +23,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StarRating } from '@/components/ui/StarRating';
 import { Builder, Review, Project } from '@/types';
 import { cn } from '@/lib/utils';
+import { QuoteRequestForm } from '@/components/leads/QuoteRequestForm';
+import { BuilderStats } from '@/components/profile/BuilderStats';
 
 interface Section {
     id: string;
@@ -34,8 +36,11 @@ const PROFILE_SECTIONS: Section[] = [
     { id: 'photos', label: 'Photos' },
     { id: 'projects', label: 'Projects' },
     { id: 'reviews', label: 'Reviews' },
-    { id: 'contact', label: 'Contact' },
+    { id: 'location', label: 'Location' },
     { id: 'services', label: 'Services' },
+    { id: 'hours', label: 'Operating Hours' },
+    { id: 'contact', label: 'Contact' },
+    { id: 'quote', label: 'Request Quote' },
 ];
 
 interface BuilderProfileClientProps {
@@ -47,30 +52,52 @@ export function BuilderProfileClient({ builder }: BuilderProfileClientProps) {
     const navRef = useRef<HTMLDivElement>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-    // Handle scroll to update active section
+    // Flag to prevent scroll handler from overriding click
+    const isClickScrollingRef = useRef(false);
+
+    // Handle scroll to update active section using IntersectionObserver
     useEffect(() => {
-        const handleScroll = () => {
-            const sections = PROFILE_SECTIONS.map(s => document.getElementById(s.id));
-            const scrollPosition = window.scrollY + 200;
+        const observer = new IntersectionObserver(
+            (entries) => {
+                // Skip if user just clicked a navigation item
+                if (isClickScrollingRef.current) return;
 
-            for (let i = sections.length - 1; i >= 0; i--) {
-                const section = sections[i];
-                if (section && section.offsetTop <= scrollPosition) {
-                    setActiveSection(PROFILE_SECTIONS[i].id);
-                    break;
-                }
+                // Find the entry that's most visible
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting && entry.intersectionRatio > 0.2) {
+                        const sectionId = entry.target.id;
+                        if (PROFILE_SECTIONS.some(s => s.id === sectionId)) {
+                            setActiveSection(sectionId);
+                        }
+                    }
+                });
+            },
+            {
+                rootMargin: '-20% 0px -60% 0px', // Trigger when section is in the upper portion of viewport
+                threshold: [0.1, 0.2, 0.3, 0.5]
             }
-        };
+        );
 
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        handleScroll();
+        // Observe all section elements
+        PROFILE_SECTIONS.forEach(section => {
+            const element = document.getElementById(section.id);
+            if (element) {
+                observer.observe(element);
+            }
+        });
 
-        return () => window.removeEventListener('scroll', handleScroll);
+        return () => observer.disconnect();
     }, []);
 
     const scrollToSection = (sectionId: string) => {
         const section = document.getElementById(sectionId);
         if (section) {
+            // Set active immediately on click
+            setActiveSection(sectionId);
+
+            // Prevent scroll handler from overriding for 1 second
+            isClickScrollingRef.current = true;
+
             const headerOffset = 140;
             const elementPosition = section.getBoundingClientRect().top;
             const offsetPosition = elementPosition + window.scrollY - headerOffset;
@@ -79,7 +106,11 @@ export function BuilderProfileClient({ builder }: BuilderProfileClientProps) {
                 top: offsetPosition,
                 behavior: 'smooth'
             });
-            setActiveSection(sectionId);
+
+            // Re-enable scroll detection after animation completes
+            setTimeout(() => {
+                isClickScrollingRef.current = false;
+            }, 1000);
         }
     };
 
@@ -113,6 +144,14 @@ export function BuilderProfileClient({ builder }: BuilderProfileClientProps) {
             alert('Link copied to clipboard!');
         }
     };
+
+    // Helper to get section card classes with active highlighting
+    const getSectionClasses = (sectionId: string) => cn(
+        "border-2 scroll-mt-36 transition-all duration-300",
+        activeSection === sectionId
+            ? "border-[#F97316] shadow-lg shadow-[#F97316]/10"
+            : "border-slate-200"
+    );
 
     return (
         <div className="min-h-screen bg-background">
@@ -185,7 +224,10 @@ export function BuilderProfileClient({ builder }: BuilderProfileClientProps) {
                                         </div>
 
                                         <div className="flex flex-wrap gap-2">
-                                            <Button className="bg-[#F97316] hover:bg-[#EA580C] text-white">
+                                            <Button
+                                                className="bg-[#F97316] hover:bg-[#EA580C] text-white"
+                                                onClick={() => scrollToSection('quote')}
+                                            >
                                                 Request Quote
                                             </Button>
                                             <Button variant="outline" className="border-[#0EA5E9] text-[#0EA5E9] hover:bg-[#0EA5E9]/5">
@@ -240,7 +282,7 @@ export function BuilderProfileClient({ builder }: BuilderProfileClientProps) {
                     {/* Left Column - Main Content */}
                     <div className="lg:col-span-2 space-y-8">
                         {/* About Section */}
-                        <Card id="about" className="border-2 border-slate-200 scroll-mt-36">
+                        <Card id="about" className={getSectionClasses('about')}>
                             <CardHeader>
                                 <CardTitle className="text-xl">About Us</CardTitle>
                             </CardHeader>
@@ -273,7 +315,7 @@ export function BuilderProfileClient({ builder }: BuilderProfileClientProps) {
                         </Card>
 
                         {/* Photos Section */}
-                        <Card id="photos" className="border-2 border-slate-200 scroll-mt-36">
+                        <Card id="photos" className={getSectionClasses('photos')}>
                             <CardHeader>
                                 <CardTitle className="text-xl">Photos</CardTitle>
                             </CardHeader>
@@ -298,7 +340,7 @@ export function BuilderProfileClient({ builder }: BuilderProfileClientProps) {
                         </Card>
 
                         {/* Projects Section */}
-                        <Card id="projects" className="border-2 border-slate-200 scroll-mt-36">
+                        <Card id="projects" className={getSectionClasses('projects')}>
                             <CardHeader>
                                 <CardTitle className="text-xl">Projects</CardTitle>
                             </CardHeader>
@@ -359,7 +401,7 @@ export function BuilderProfileClient({ builder }: BuilderProfileClientProps) {
                         </Card>
 
                         {/* Reviews Section */}
-                        <Card id="reviews" className="border-2 border-slate-200 scroll-mt-36">
+                        <Card id="reviews" className={getSectionClasses('reviews')}>
                             <CardHeader className="flex flex-row items-center justify-between">
                                 <CardTitle className="text-xl">Reviews</CardTitle>
                                 <Button variant="outline" size="sm" className="border-[#0EA5E9] text-[#0EA5E9]">
@@ -399,12 +441,103 @@ export function BuilderProfileClient({ builder }: BuilderProfileClientProps) {
                                 </div>
                             </CardContent>
                         </Card>
+
+                        {/* Location Section - Moved from sidebar */}
+                        <Card id="location" className={getSectionClasses('location')}>
+                            <CardHeader>
+                                <CardTitle className="text-xl">Location</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="aspect-video rounded-lg bg-slate-100 flex items-center justify-center border-2 border-slate-200">
+                                    <div className="text-center text-slate-400">
+                                        <MapPin className="h-8 w-8 mx-auto mb-2" />
+                                        <p className="text-sm">Map will load here</p>
+                                    </div>
+                                </div>
+                                <p className="text-sm text-slate-500 mt-3">
+                                    {builder.city}, {builder.provinces[0]}
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        {/* Services Section - Moved from sidebar */}
+                        <Card id="services" className={getSectionClasses('services')}>
+                            <CardHeader>
+                                <CardTitle className="text-xl">Services</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex flex-wrap gap-2">
+                                    {builder.serviceAttributes.map((attr) => (
+                                        <Badge
+                                            key={attr}
+                                            variant="outline"
+                                            className="border-[#0EA5E9] text-slate-600"
+                                        >
+                                            {attr === '24/7 Emergency' && <Clock className="h-3 w-3 mr-1" />}
+                                            {attr}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Operating Hours Section */}
+                        <Card id="hours" className={getSectionClasses('hours')}>
+                            <CardHeader>
+                                <CardTitle className="text-xl flex items-center gap-2">
+                                    <Clock className="h-5 w-5 text-[#0EA5E9]" />
+                                    Operating Hours
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {builder.operatingHours ? (
+                                    <div className="space-y-2">
+                                        {(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const).map((day) => {
+                                            const hours = builder.operatingHours?.[day];
+                                            const isToday = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() === day;
+                                            const isClosed = hours?.closed;
+
+                                            return (
+                                                <div
+                                                    key={day}
+                                                    className={cn(
+                                                        "flex items-center justify-between py-2 px-3 rounded-lg",
+                                                        isToday ? "bg-[#0EA5E9]/5 border border-[#0EA5E9]/20" : ""
+                                                    )}
+                                                >
+                                                    <span className={cn(
+                                                        "capitalize text-sm font-medium",
+                                                        isToday ? "text-[#0EA5E9]" : "text-slate-600"
+                                                    )}>
+                                                        {day}
+                                                        {isToday && <span className="ml-2 text-xs">(Today)</span>}
+                                                    </span>
+                                                    {isClosed ? (
+                                                        <span className="text-sm text-slate-400">Closed</span>
+                                                    ) : hours ? (
+                                                        <span className="text-sm text-slate-700">
+                                                            {hours.open} - {hours.close}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-sm text-slate-400">-</span>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <p className="text-slate-500 text-center py-4">
+                                        Operating hours not specified.
+                                    </p>
+                                )}
+                            </CardContent>
+                        </Card>
                     </div>
 
                     {/* Right Column - Sidebar */}
                     <div className="space-y-6">
                         {/* Contact Details */}
-                        <Card id="contact" className="border-2 border-slate-200 scroll-mt-36">
+                        <Card id="contact" className={getSectionClasses('contact')}>
                             <CardHeader>
                                 <CardTitle className="text-lg">Contact Details</CardTitle>
                             </CardHeader>
@@ -437,121 +570,38 @@ export function BuilderProfileClient({ builder }: BuilderProfileClientProps) {
                             </CardContent>
                         </Card>
 
-                        {/* Request Quote Form */}
+                        {/* Real-time Stats */}
                         <Card className="border-2 border-slate-200">
+                            <CardHeader>
+                                <CardTitle className="text-lg">Quote Activity</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <BuilderStats builderId={builder.id} />
+                            </CardContent>
+                        </Card>
+
+                        <Card id="quote" className={getSectionClasses('quote')}>
                             <CardHeader>
                                 <CardTitle className="text-lg">Request a Quote</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <form className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">What do you need?</label>
-                                        <textarea
-                                            placeholder="Describe your project..."
-                                            className="w-full min-h-24 px-3 py-2 rounded-lg border-2 border-slate-200 focus:border-[#0EA5E9] focus:outline-none resize-none"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Property Type</label>
-                                        <select className="w-full px-3 py-2 rounded-lg border-2 border-slate-200 focus:border-[#0EA5E9] focus:outline-none">
-                                            <option>Residential</option>
-                                            <option>Commercial</option>
-                                            <option>Industrial</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1">Your Location</label>
-                                        <input
-                                            type="text"
-                                            placeholder="City, Province"
-                                            className="w-full px-3 py-2 rounded-lg border-2 border-slate-200 focus:border-[#0EA5E9] focus:outline-none"
-                                        />
-                                    </div>
-                                    <Button className="w-full bg-[#F97316] hover:bg-[#EA580C] text-white">
-                                        Submit Request
-                                    </Button>
-                                </form>
-                            </CardContent>
-                        </Card>
-
-                        {/* Location Map Placeholder */}
-                        <Card className="border-2 border-slate-200">
-                            <CardHeader>
-                                <CardTitle className="text-lg">Location</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="aspect-video rounded-lg bg-slate-100 flex items-center justify-center border-2 border-slate-200">
-                                    <div className="text-center text-slate-400">
-                                        <MapPin className="h-8 w-8 mx-auto mb-2" />
-                                        <p className="text-sm">Map will load here</p>
-                                    </div>
-                                </div>
-                                <p className="text-sm text-slate-500 mt-3">
-                                    {builder.city}, {builder.provinces[0]}
-                                </p>
-                            </CardContent>
-                        </Card>
-
-
-
-                        {/* Pricing Section (New) */}
-                        {(builder.callOutFee || builder.hourlyRate) && (
-                            <Card className="border-2 border-slate-200">
-                                <CardHeader>
-                                    <CardTitle className="text-lg">Rates & Pricing</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    {builder.callOutFee && (
-                                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 last:border-0 last:pb-0">
-                                            <div className="flex items-center gap-2 text-slate-600 font-medium">
-                                                <Banknote className="h-4 w-4 text-[#0EA5E9]" />
-                                                Call Out Fee
-                                            </div>
-                                            <span className="font-bold text-slate-800">R {builder.callOutFee}</span>
-                                        </div>
-                                    )}
-                                    {builder.hourlyRate && (
-                                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 last:border-0 last:pb-0">
-                                            <div className="flex items-center gap-2 text-slate-600 font-medium">
-                                                <Clock className="h-4 w-4 text-[#0EA5E9]" />
-                                                Hourly Rate
-                                            </div>
-                                            <span className="font-bold text-slate-800">R {builder.hourlyRate}/hr</span>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        {/* Services Section */}
-                        <Card id="services" className="border-2 border-slate-200 scroll-mt-36">
-                            <CardHeader>
-                                <CardTitle className="text-lg">Services</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex flex-wrap gap-2">
-                                    {builder.serviceAttributes.map((attr) => (
-                                        <Badge
-                                            key={attr}
-                                            variant="outline"
-                                            className="border-[#0EA5E9] text-slate-600"
-                                        >
-                                            {attr === '24/7 Emergency' && <Clock className="h-3 w-3 mr-1" />}
-                                            {attr}
-                                        </Badge>
-                                    ))}
-                                </div>
+                                <QuoteRequestForm
+                                    builderId={builder.id}
+                                    builderName={builder.name}
+                                />
                             </CardContent>
                         </Card>
                     </div>
                 </div>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }
 
-// Project Card Component
+// Project Card Component with Images for ongoing/completed projects
 function ProjectCard({ project }: { project: Project }) {
+    const showImages = project.status !== 'cancelled' && project.images && project.images.length > 0;
+
     return (
         <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
             <div className="flex items-start justify-between mb-2">
@@ -570,6 +620,35 @@ function ProjectCard({ project }: { project: Project }) {
                 </Badge>
             </div>
             <p className="text-sm text-slate-500 mb-2">{project.description}</p>
+
+            {/* Project Images - Only for ongoing/completed */}
+            {showImages && (
+                <div className="mb-3">
+                    <div className="grid grid-cols-4 gap-2">
+                        {project.images.slice(0, 4).map((image, index) => (
+                            <div
+                                key={index}
+                                className="relative aspect-square rounded-lg overflow-hidden border border-slate-200"
+                            >
+                                <Image
+                                    src={image}
+                                    alt={`${project.title} photo ${index + 1}`}
+                                    fill
+                                    className="object-cover hover:scale-105 transition-transform"
+                                />
+                                {index === 3 && project.images.length > 4 && (
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                        <span className="text-white font-semibold text-sm">
+                                            +{project.images.length - 4}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             <div className="flex items-center gap-1 text-xs text-slate-400">
                 <MapPin className="h-3 w-3" />
                 {project.city}, {project.province}

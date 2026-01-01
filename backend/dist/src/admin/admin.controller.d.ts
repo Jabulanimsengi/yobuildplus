@@ -30,7 +30,13 @@ export declare class AdminController {
         callOutFee: number | null;
         hourlyRate: number | null;
         serviceAreas: string[];
+        operatingHours: import("@prisma/client/runtime/library").JsonValue | null;
         approvalStatus: string;
+        subscriptionPlan: string;
+        subscriptionStatus: string;
+        subscriptionStart: Date | null;
+        subscriptionEnd: Date | null;
+        commissionRate: number;
     }[]>;
     approveBuilder(id: string): Promise<{
         id: string;
@@ -60,7 +66,13 @@ export declare class AdminController {
         callOutFee: number | null;
         hourlyRate: number | null;
         serviceAreas: string[];
+        operatingHours: import("@prisma/client/runtime/library").JsonValue | null;
         approvalStatus: string;
+        subscriptionPlan: string;
+        subscriptionStatus: string;
+        subscriptionStart: Date | null;
+        subscriptionEnd: Date | null;
+        commissionRate: number;
     }>;
     rejectBuilder(id: string, body: {
         reason?: string;
@@ -92,7 +104,13 @@ export declare class AdminController {
         callOutFee: number | null;
         hourlyRate: number | null;
         serviceAreas: string[];
+        operatingHours: import("@prisma/client/runtime/library").JsonValue | null;
         approvalStatus: string;
+        subscriptionPlan: string;
+        subscriptionStatus: string;
+        subscriptionStart: Date | null;
+        subscriptionEnd: Date | null;
+        commissionRate: number;
     }>;
     getPendingEdits(): Promise<{
         id: string;

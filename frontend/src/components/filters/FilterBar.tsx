@@ -81,16 +81,24 @@ export function FilterBar({
                                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                             )}
                         >
-                            <span>{category.icon}</span>
-                            <span className="hidden sm:inline">{category.name}</span>
+                            <span className="hidden sm:inline">{category.icon}</span>
+                            <span>{category.name}</span>
                         </button>
                     ))}
                     {!showAllCategories && categories.length > 4 && (
                         <button
                             onClick={() => setShowAllCategories(true)}
-                            className="px-3 py-1.5 rounded-full text-sm font-medium text-primary hover:bg-sky-50 transition-all"
+                            className="px-3 py-1.5 rounded-full text-sm font-medium text-primary hover:bg-sky-50 transition-all border border-primary/30"
                         >
-                            +{categories.length - 4} more
+                            View more
+                        </button>
+                    )}
+                    {showAllCategories && (
+                        <button
+                            onClick={() => setShowAllCategories(false)}
+                            className="px-3 py-1.5 rounded-full text-sm font-medium text-slate-500 hover:bg-slate-50 transition-all"
+                        >
+                            Show less
                         </button>
                     )}
                 </div>

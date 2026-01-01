@@ -15,6 +15,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BuildersController = void 0;
 const common_1 = require("@nestjs/common");
 const builders_service_1 = require("./builders.service");
+const passport_1 = require("@nestjs/passport");
+const update_builder_dto_1 = require("./dto/update-builder.dto");
 let BuildersController = class BuildersController {
     buildersService;
     constructor(buildersService) {
@@ -31,7 +33,10 @@ let BuildersController = class BuildersController {
     async findOne(slug) {
         return this.buildersService.findBySlug(slug);
     }
-    async updateProfile(id, updateData) {
+    async updateProfile(id, updateData, req) {
+        if (req.user.role !== 'admin' && req.user.builderId !== id) {
+            throw new common_1.ForbiddenException('You are not authorized to update this profile');
+        }
         return this.buildersService.updateProfile(id, updateData);
     }
 };
@@ -54,11 +59,13 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], BuildersController.prototype, "findOne", null);
 __decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Patch)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, update_builder_dto_1.UpdateBuilderDto, Object]),
     __metadata("design:returntype", Promise)
 ], BuildersController.prototype, "updateProfile", null);
 exports.BuildersController = BuildersController = __decorate([

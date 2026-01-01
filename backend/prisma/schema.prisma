@@ -19,15 +19,19 @@ model User {
   email     String   @unique
   password  String
   name      String
-  role      String   @default("contractor") // admin, contractor
+  role      String   @default("consumer") // admin, contractor, consumer
   
   builderId String?  @unique
   builder   Builder? @relation(fields: [builderId], references: [id])
+  
+  notifications  Notification[]
+  quoteRequests  QuoteRequest[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([email])
+  @@index([role])
 }
 
 // ============================================
@@ -94,13 +98,25 @@ model Builder {
   hourlyRate        Float?
   serviceAreas      String[]
   
+  // Operating hours - JSON with daily schedule
+  // Format: { monday: { open: "08:00", close: "17:00", closed: false }, ... }
+  operatingHours    Json?
+  
   // Approval workflow
   approvalStatus    String        @default("pending") // pending, approved, rejected
+  
+  // Subscription & Commission
+  subscriptionPlan  String        @default("free") // "free" | "pro"
+  subscriptionStatus String       @default("active") // active, cancelled, expired
+  subscriptionStart DateTime?
+  subscriptionEnd   DateTime?
+  commissionRate    Float         @default(0.25) // 25% for free tier, 0% for pro
   
   categories    Category[]    @relation("BuilderCategories")
   subcategories Subcategory[] @relation("BuilderSubcategories")
   projects      Project[]
   reviews       Review[]
+  quotes        QuoteRequest[]
   user          User?
   
   createdAt DateTime @default(now())
@@ -110,6 +126,7 @@ model Builder {
   @@index([rating])
   @@index([verified])
   @@index([approvalStatus])
+  @@index([subscriptionPlan])
 }
 
 // ============================================
@@ -129,8 +146,14 @@ model Project {
   builder   Builder @relation(fields: [builderId], references: [id], onDelete: Cascade)
   builderId String
   
+  // Link to accepted quote
+  quoteId   String?   @unique
+  quote     QuoteRequest? @relation(fields: [quoteId], references: [id])
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  @@index([quoteId])
 }
 
 model Review {
@@ -148,4 +171,132 @@ model Review {
 
   @@index([builderId])
   @@index([rating])
+}
+
+model QuoteRequest {
+  id          String   @id @default(uuid())
+  builderId   String
+  builder     Builder  @relation(fields: [builderId], references: [id], onDelete: Cascade)
+  
+  // Consumer Details
+  name        String
+  email       String
+  phone       String
+  location    String?
+  
+  // Project Details
+  title       String?   // Quote title for tracking
+  message     String
+  
+  // Status Flow:
+  // quote_requested -> request_accepted/request_rejected/request_considering
+  // request_accepted -> quoted -> quote_accepted/quote_rejected/counter_proposal
+  // quote_accepted -> project_created -> completed
+  status      String   @default("quote_requested")
+  
+  // Quotation Response (filled by builder)
+  totalAmount     Float?
+  currency        String?   @default("ZAR")
+  validUntil      DateTime?
+  notes           String?
+  respondedAt     DateTime?
+  
+  // Counter-proposal from consumer
+  proposedAmount  Float?
+  proposalNotes   String?
+  
+  // For counter-proposal linking
+  parentQuoteId   String?
+  parentQuote     QuoteRequest? @relation("CounterProposals", fields: [parentQuoteId], references: [id])
+  counterProposals QuoteRequest[] @relation("CounterProposals")
+  
+  // Consumer user tracking
+  userId          String?
+  user            User?     @relation(fields: [userId], references: [id])
+  
+  items           QuotationItem[]
+  notifications   Notification[]
+  project         Project?
+  payments        Payment[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([builderId])
+  @@index([status])
+  @@index([userId])
+  @@index([parentQuoteId])
+}
+
+model QuotationItem {
+  id          String        @id @default(uuid())
+  description String
+  quantity    Float
+  unitPrice   Float
+  unit        String?       // e.g., "hours", "sqm", "each"
+  totalPrice  Float
+  
+  quoteId     String
+  quote       QuoteRequest  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime      @default(now())
+  
+  @@index([quoteId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  type      String   // quote_request, quote_response, quote_accepted, quote_rejected
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  quoteId   String?
+  quote     QuoteRequest? @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  
+  createdAt DateTime @default(now())
+  
+  @@index([userId, read])
+  @@index([createdAt])
+}
+
+// ============================================
+// PAYMENT & ESCROW MODELS
+// ============================================
+
+model Payment {
+  id              String    @id @default(uuid())
+  quoteId         String
+  quote           QuoteRequest @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  
+  amount          Float     // Total payment amount
+  platformFee     Float     @default(0) // Commission amount
+  netAmount       Float     // Amount to contractor after fees
+  
+  status          String    @default("pending") // pending, held, released, refunded, disputed
+  
+  // Payment tracking
+  paidByClientAt  DateTime?
+  heldAt          DateTime?
+  releasedAt      DateTime?
+  refundedAt      DateTime?
+  
+  // Milestone info (optional)
+  milestoneNumber Int?
+  milestoneDesc   String?
+  
+  // Payment reference
+  paymentRef      String?
+  paymentMethod   String?   // eft, card, etc.
+  
+  notes           String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([quoteId])
+  @@index([status])
 }

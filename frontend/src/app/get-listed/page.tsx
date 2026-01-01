@@ -35,10 +35,10 @@ export default function GetListedPage() {
                             </p>
                             <div className="space-y-4 pt-4">
                                 {[
-                                    'No commission fees on jobs',
+                                    'List your business for FREE',
+                                    '15% - 25% commission on completed jobs',
                                     'Direct client communication',
-                                    'SEO-optimized business profile',
-                                    'Verified badge for trusted pros'
+                                    'SEO-optimized business profile'
                                 ].map((item, index) => (
                                     <div key={index} className="flex items-center gap-3">
                                         <CheckCircle2 className="h-5 w-5 text-[#22C55E]" />
@@ -103,7 +103,7 @@ export default function GetListedPage() {
                         {[
                             {
                                 title: 'High-Quality Leads',
-                                description: 'Stop chasing tire kickers. Our platform attracts serious homeowners ready to hire for their projects.',
+                                description: 'Stop chasing tire kickers. Our platform attracts serious clients ready to hire for their projects.',
                                 icon: (wrapper: React.ReactNode) => <div className="h-12 w-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 mb-4">{wrapper}</div>,
                                 iconComp: <TrendingUp className="h-7 w-7" />
                             },
@@ -131,34 +131,42 @@ export default function GetListedPage() {
             </section>
 
             {/* Pricing Teaser */}
-            <section className="py-20 bg-slate-900 text-white text-center">
+            <section className="py-20 bg-white text-center">
                 <div className="container mx-auto px-4">
-                    <h2 className="text-3xl font-bold mb-6">Simple, Transparent Pricing</h2>
-                    <p className="text-slate-300 mb-8 max-w-2xl mx-auto">
-                        Start for free with our Basic plan, or upgrade to Pro for unlimited leads and premium features.
+                    <h2 className="text-3xl font-bold text-slate-800 mb-6">Simple, Transparent Pricing</h2>
+                    <p className="text-slate-600 mb-8 max-w-2xl mx-auto">
+                        Start free and only pay commission when you get paid. Or upgrade to Pro for 0% commission.
                     </p>
-                    <div className="flex justify-center gap-4">
-                        <div className="p-6 rounded-xl bg-slate-800 border border-slate-700 w-full max-w-sm">
-                            <h3 className="text-xl font-bold mb-2">Basic</h3>
-                            <p className="text-3xl font-bold mb-4">Free</p>
-                            <ul className="text-left space-y-2 mb-6 text-slate-400">
-                                <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /> 1 Active Listing</li>
-                                <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /> Receive 5 Leads/mo</li>
+                    <div className="flex flex-col md:flex-row justify-center gap-6">
+                        <div className="p-6 rounded-xl bg-slate-50 border border-slate-200 w-full max-w-sm">
+                            <h3 className="text-xl font-bold text-slate-800 mb-2">Basic</h3>
+                            <p className="text-3xl font-bold text-slate-800 mb-2">Free</p>
+                            <p className="text-sm text-slate-500 mb-4">15% - 25% commission per job</p>
+                            <ul className="text-left space-y-2 mb-6 text-slate-600">
+                                <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" /> 1 Active Listing</li>
+                                <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" /> Receive 5 Leads/mo</li>
+                                <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" /> Commission based on job size</li>
+                                <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" /> Direct client communication</li>
                             </ul>
-                            <Button variant="outline" className="w-full text-white bg-transparent border-slate-600">Current Plan</Button>
+                            <Button variant="outline" className="w-full border-slate-300 text-slate-700">Get Started Free</Button>
                         </div>
-                        <div className="p-6 rounded-xl bg-gradient-to-br from-[#0EA5E9] to-[#0284C7] border border-blue-400 w-full max-w-sm relative transform scale-105 shadow-2xl">
-                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F97316] text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Most Popular</div>
-                            <h3 className="text-xl font-bold mb-2">Pro Partner</h3>
-                            <p className="text-3xl font-bold mb-4">R499<span className="text-lg font-normal text-blue-100">/mo</span></p>
-                            <ul className="text-left space-y-2 mb-6 text-blue-50">
-                                <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-white" /> Unlimited Listings</li>
-                                <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-white" /> Unlimited Leads</li>
-                                <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-white" /> Verified Badge</li>
+                        <div className="p-6 rounded-xl bg-slate-900 border border-slate-700 w-full max-w-sm relative transform md:scale-105 shadow-2xl">
+                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F97316] text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Best Value</div>
+                            <h3 className="text-xl font-bold text-white mb-2">Pro Partner</h3>
+                            <p className="text-3xl font-bold text-white mb-2">R499<span className="text-lg font-normal text-slate-400">/mo</span></p>
+                            <p className="text-sm text-[#22C55E] mb-4 font-semibold">0% Commission - Keep 100%</p>
+                            <ul className="text-left space-y-2 mb-6 text-slate-300">
+                                <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-[#0EA5E9] flex-shrink-0" /> Unlimited Listings</li>
+                                <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-[#0EA5E9] flex-shrink-0" /> Unlimited Leads</li>
+                                <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-[#0EA5E9] flex-shrink-0" /> Verified Badge</li>
+                                <li className="flex gap-2"><CheckCircle2 className="h-5 w-5 text-[#0EA5E9] flex-shrink-0" /> Priority Support</li>
                             </ul>
-                            <Button className="w-full bg-white text-[#0EA5E9] hover:bg-white/90">Upgrade Now</Button>
+                            <Button className="w-full bg-[#F97316] hover:bg-[#EA580C] text-white">Upgrade Now</Button>
                         </div>
                     </div>
+                    <p className="text-sm text-slate-500 mt-8 max-w-xl mx-auto">
+                        Commission rates depend on job size: 25% for jobs under R10,000, 20% for R10,000-R50,000, 15% for jobs over R50,000.
+                    </p>
                 </div>
             </section>
         </div>

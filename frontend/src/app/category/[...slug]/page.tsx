@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 import { Builder } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 // Fetch builders from API with optional category filter
 async function getBuilders(categorySlug?: string): Promise<Builder[]> {
@@ -190,43 +190,46 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
             {/* Header */}
             <div className="bg-white border-b border-slate-200">
-                <div className="container mx-auto px-4 py-8">
-                    <div className="flex items-center gap-2 text-sm text-slate-500 mb-4 flex-wrap">
-                        <Link href="/" className="hover:text-[#0EA5E9]">Home</Link>
-                        <span>/</span>
-                        <Link href="/builders" className="hover:text-[#0EA5E9]">Categories</Link>
-                        <span>/</span>
-                        {parentCategory && (
-                            <>
-                                <Link href={`/category/${parentCategory.slug}`} className="hover:text-[#0EA5E9]">
-                                    {parentCategory.name}
-                                </Link>
-                                <span>/</span>
-                            </>
-                        )}
-                        <Link href={`/category/${serviceSlug}`} className={locationName ? "hover:text-[#0EA5E9]" : "text-slate-800 font-medium"}>
-                            {name}
-                        </Link>
-                        {locationName && (
-                            <>
-                                <span>/</span>
-                                <span className="text-slate-800 font-medium">{locationName}</span>
-                            </>
-                        )}
+                <div className="container mx-auto px-4 py-4 md:py-8">
+                    {/* Breadcrumb - Horizontal scrollable on mobile */}
+                    <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 mb-3 md:mb-4">
+                        <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm text-slate-500 whitespace-nowrap">
+                            <Link href="/" className="hover:text-[#0EA5E9]">Home</Link>
+                            <span>/</span>
+                            <Link href="/contractors" className="hover:text-[#0EA5E9]">Categories</Link>
+                            {parentCategory && (
+                                <>
+                                    <span>/</span>
+                                    <Link href={`/category/${parentCategory.slug}`} className="hover:text-[#0EA5E9]">
+                                        {parentCategory.name}
+                                    </Link>
+                                </>
+                            )}
+                            <span>/</span>
+                            <span className={locationName ? "hover:text-[#0EA5E9]" : "text-slate-800 font-medium"}>
+                                {name}
+                            </span>
+                            {locationName && (
+                                <>
+                                    <span>/</span>
+                                    <span className="text-slate-800 font-medium">{locationName}</span>
+                                </>
+                            )}
+                        </div>
                     </div>
 
-                    <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">{finalH1}</h1>
-                    <p className="text-xl text-slate-600 max-w-3xl leading-relaxed">
+                    <h1 className="text-2xl md:text-4xl font-bold text-slate-900 mb-2 md:mb-4">{finalH1}</h1>
+                    <p className="text-base md:text-xl text-slate-600 max-w-3xl leading-relaxed">
                         {seoContent?.intro || description}
                     </p>
                 </div>
             </div>
 
             {/* Results Section */}
-            <div className="container mx-auto px-4 py-8">
-                <div className="flex flex-col md:flex-row gap-8">
-                    {/* Filters Sidebar (Mock) */}
-                    <div className="w-full md:w-64 flex-shrink-0 space-y-6">
+            <div className="container mx-auto px-4 py-4 md:py-8">
+                <div className="flex flex-col md:flex-row gap-4 md:gap-8">
+                    {/* Filters Sidebar - Hidden on mobile, visible on desktop */}
+                    <div className="hidden md:block w-64 flex-shrink-0 space-y-6">
                         <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
                             <h3 className="font-semibold text-slate-800 mb-3">Location</h3>
                             <input
@@ -252,11 +255,11 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
                     {/* Listings */}
                     <div className="flex-1">
-                        <div className="mb-4 flex items-center justify-between">
-                            <p className="text-slate-600">
-                                Showing <span className="font-bold text-slate-900">{builders.length}</span> results in {locationName || 'South Africa'}
+                        <div className="mb-3 md:mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <p className="text-sm md:text-base text-slate-600">
+                                <span className="font-bold text-slate-900">{builders.length}</span> results in {locationName || 'South Africa'}
                             </p>
-                            <select className="border border-slate-300 rounded-md text-sm px-2 py-1 outline-none focus:border-[#0EA5E9]">
+                            <select className="border border-slate-300 rounded-md text-sm px-2 py-1.5 outline-none focus:border-[#0EA5E9] w-full sm:w-auto">
                                 <option>Recommended</option>
                                 <option>Highest Rated</option>
                                 <option>Most Reviews</option>
@@ -276,7 +279,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
                                 <p className="text-slate-600 mb-4">
                                     We don&apos;t have any builders in this category yet.
                                 </p>
-                                <Link href="/builders" className="text-[#0EA5E9] hover:underline font-medium">
+                                <Link href="/contractors" className="text-[#0EA5E9] hover:underline font-medium">
                                     Browse all builders
                                 </Link>
                             </div>

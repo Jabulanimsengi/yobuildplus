@@ -103,4 +103,38 @@ export class BuildersService {
             },
         });
     }
+
+    async createProfile(userId: string, createData: any) {
+        // Generate a unique slug from the name
+        const baseSlug = (createData.name || 'builder')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+
+        // Check if slug exists, add number if needed
+        let slug = baseSlug;
+        let counter = 1;
+        while (await this.prisma.builder.findUnique({ where: { slug } })) {
+            slug = `${baseSlug}-${counter}`;
+            counter++;
+        }
+
+        // Create the builder profile
+        const builder = await this.prisma.builder.create({
+            data: {
+                ...createData,
+                slug,
+                approvalStatus: 'pending',
+                verified: false,
+                rating: 0,
+                reviewCount: 0,
+                isAvailable: true,
+                user: {
+                    connect: { id: userId },
+                },
+            },
+        });
+
+        return builder;
+    }
 }

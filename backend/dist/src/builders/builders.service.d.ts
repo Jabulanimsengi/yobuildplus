@@ -55,7 +55,13 @@ export declare class BuildersService {
         callOutFee: number | null;
         hourlyRate: number | null;
         serviceAreas: string[];
+        operatingHours: import("@prisma/client/runtime/library").JsonValue | null;
         approvalStatus: string;
+        subscriptionPlan: string;
+        subscriptionStatus: string;
+        subscriptionStart: Date | null;
+        subscriptionEnd: Date | null;
+        commissionRate: number;
     })[]>;
     findBySlug(slug: string): Promise<{
         subcategories: {
@@ -83,11 +89,12 @@ export declare class BuildersService {
             updatedAt: Date;
             city: string;
             builderId: string;
-            province: string;
             title: string;
             status: string;
             images: string[];
+            province: string;
             completedAt: Date | null;
+            quoteId: string | null;
         }[];
         reviews: {
             id: string;
@@ -127,7 +134,13 @@ export declare class BuildersService {
         callOutFee: number | null;
         hourlyRate: number | null;
         serviceAreas: string[];
+        operatingHours: import("@prisma/client/runtime/library").JsonValue | null;
         approvalStatus: string;
+        subscriptionPlan: string;
+        subscriptionStatus: string;
+        subscriptionStart: Date | null;
+        subscriptionEnd: Date | null;
+        commissionRate: number;
     }>;
     updateProfile(id: string, updateData: any): Promise<{
         id: string;
@@ -157,7 +170,13 @@ export declare class BuildersService {
         callOutFee: number | null;
         hourlyRate: number | null;
         serviceAreas: string[];
+        operatingHours: import("@prisma/client/runtime/library").JsonValue | null;
         approvalStatus: string;
+        subscriptionPlan: string;
+        subscriptionStatus: string;
+        subscriptionStart: Date | null;
+        subscriptionEnd: Date | null;
+        commissionRate: number;
     }>;
 }
 export {};

@@ -4,6 +4,7 @@ export declare class JwtStrategy extends JwtStrategy_base {
     private prisma;
     constructor(prisma: PrismaService);
     validate(payload: any): Promise<{
+        builderId: string | undefined;
         builder: {
             id: string;
             slug: string;
@@ -32,7 +33,13 @@ export declare class JwtStrategy extends JwtStrategy_base {
             callOutFee: number | null;
             hourlyRate: number | null;
             serviceAreas: string[];
+            operatingHours: import("@prisma/client/runtime/library").JsonValue | null;
             approvalStatus: string;
+            subscriptionPlan: string;
+            subscriptionStatus: string;
+            subscriptionStart: Date | null;
+            subscriptionEnd: Date | null;
+            commissionRate: number;
         } | null;
         id: string;
         name: string;
@@ -40,7 +47,6 @@ export declare class JwtStrategy extends JwtStrategy_base {
         updatedAt: Date;
         email: string;
         role: string;
-        builderId: string | null;
     }>;
 }
 export {};

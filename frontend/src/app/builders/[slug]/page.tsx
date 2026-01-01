@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { BuilderProfileClient } from '@/components/profile/BuilderProfileClient';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 // Fetch builder by slug from API
 async function getBuilder(slug: string) {

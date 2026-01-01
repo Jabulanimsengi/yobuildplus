@@ -1,7 +1,7 @@
 // API Service Layer for Yobuildplus
 // Centralizes all fetch calls to the backend
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 // Generic fetch wrapper with error handling
 async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
@@ -23,16 +23,34 @@ async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> 
     return response.json();
 }
 
+// Authenticated fetch wrapper - includes Authorization header
+async function authenticatedApiFetch<T>(endpoint: string, token: string, options?: RequestInit): Promise<T> {
+    const url = `${API_BASE_URL}${endpoint}`;
+
+    const response = await fetch(url, {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            ...options?.headers,
+        },
+        ...options,
+    });
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Network error' }));
+        throw new Error(error.message || `HTTP error ${response.status}`);
+    }
+
+    return response.json();
+}
+
 // ==========================================
 // BUILDERS API
 // ==========================================
 
-export interface BuilderFilters {
-    province?: string;
-    category?: string;
-    minRating?: number;
-    search?: string;
-}
+import { Builder, BuilderFilters, Category, LoginCredentials, AuthUser, AdminStats } from '@/types';
+
+// ... (existing helper function)
 
 export const buildersApi = {
     // Get all builders with optional filters
@@ -41,34 +59,35 @@ export const buildersApi = {
         if (filters?.province) params.append('province', filters.province);
         if (filters?.category) params.append('category', filters.category);
         if (filters?.minRating) params.append('minRating', String(filters.minRating));
-        if (filters?.search) params.append('search', filters.search);
+        if (filters?.searchQuery) params.append('search', filters.searchQuery);
 
         const query = params.toString() ? `?${params.toString()}` : '';
-        return apiFetch<any[]>(`/api/builders${query}`);
+        return apiFetch<Builder[]>(`/api/builders${query}`);
     },
 
     // Get single builder by slug
     getBySlug: (slug: string) => {
-        return apiFetch<any>(`/api/builders/${slug}`);
+        return apiFetch<Builder>(`/api/builders/${slug}`);
     },
 
-    // Update builder profile
-    updateProfile: (id: string, data: Partial<{
-        name: string;
-        description: string;
-        phone: string;
-        email: string;
-        website: string;
-        address: string;
-        logo: string;
-        coverImage: string;
-        photos: string[];
-        callOutFee: number;
-        hourlyRate: number;
-        serviceAreas: string[];
-        serviceAttributes: string[];
-    }>) => {
-        return apiFetch<any>(`/api/builders/${id}`, {
+    // Create new builder profile (requires authentication)
+    createProfile: (data: Partial<Builder>, token: string) => {
+        return authenticatedApiFetch<Builder>(`/api/builders`, token, {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    },
+
+    // Update builder profile (requires authentication)
+    updateProfile: (id: string, data: Partial<Builder>, token?: string) => {
+        if (token) {
+            return authenticatedApiFetch<Builder>(`/api/builders/${id}`, token, {
+                method: 'PATCH',
+                body: JSON.stringify(data),
+            });
+        }
+        // Fallback to unauthenticated (will fail if backend requires auth)
+        return apiFetch<Builder>(`/api/builders/${id}`, {
             method: 'PATCH',
             body: JSON.stringify(data),
         });
@@ -82,19 +101,19 @@ export const buildersApi = {
 export const adminApi = {
     // Get pending approvals
     getPendingBuilders: () => {
-        return apiFetch<any[]>('/api/admin/builders/pending');
+        return apiFetch<Builder[]>('/api/admin/builders/pending');
     },
 
     // Approve a builder
     approveBuilder: (id: string) => {
-        return apiFetch<any>(`/api/admin/builders/${id}/approve`, {
+        return apiFetch<{ success: boolean; message: string }>(`/api/admin/builders/${id}/approve`, {
             method: 'POST',
         });
     },
 
     // Reject a builder
     rejectBuilder: (id: string, reason?: string) => {
-        return apiFetch<any>(`/api/admin/builders/${id}/reject`, {
+        return apiFetch<{ success: boolean; message: string }>(`/api/admin/builders/${id}/reject`, {
             method: 'POST',
             body: JSON.stringify({ reason }),
         });
@@ -102,12 +121,7 @@ export const adminApi = {
 
     // Get dashboard stats
     getStats: () => {
-        return apiFetch<{
-            totalUsers: number;
-            pendingSignups: number;
-            pendingEdits: number;
-            pendingMedia: number;
-        }>('/api/admin/stats');
+        return apiFetch<AdminStats>('/api/admin/stats');
     },
 };
 
@@ -115,21 +129,9 @@ export const adminApi = {
 // CATEGORIES API
 // ==========================================
 
-export interface Category {
-    id: string;
-    slug: string;
-    name: string;
-    icon: string;
-    description: string;
-    subcategories: Subcategory[];
-}
-
-export interface Subcategory {
-    id: string;
-    slug: string;
-    name: string;
-    searchTerms: string[];
-}
+// ==========================================
+// CATEGORIES API
+// ==========================================
 
 export const categoriesApi = {
     // Get all categories with subcategories
@@ -146,19 +148,6 @@ export const categoriesApi = {
 // ==========================================
 // AUTH API
 // ==========================================
-
-export interface LoginCredentials {
-    email: string;
-    password: string;
-}
-
-export interface AuthUser {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-    builderId?: string;
-}
 
 export const authApi = {
     // Login with email/password

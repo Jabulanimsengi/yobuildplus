@@ -9,7 +9,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: process.env.JWT_SECRET || 'yobuildplus-secret-key',
+            secretOrKey: process.env.JWT_SECRET,
         });
     }
 
@@ -24,6 +24,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         }
 
         const { password, ...result } = user;
-        return result;
+        // Add builderId from the builder relation for easy access
+        return {
+            ...result,
+            builderId: user.builder?.id,
+        };
     }
 }

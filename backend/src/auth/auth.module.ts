@@ -11,7 +11,7 @@ import { PrismaModule } from '../prisma/prisma.module';
         PrismaModule,
         PassportModule.register({ defaultStrategy: 'jwt' }),
         JwtModule.register({
-            secret: process.env.JWT_SECRET || 'yobuildplus-secret-key',
+            secret: process.env.JWT_SECRET,
             signOptions: { expiresIn: '7d' },
         }),
     ],

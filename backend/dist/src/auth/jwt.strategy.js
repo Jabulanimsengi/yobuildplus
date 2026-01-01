@@ -20,7 +20,7 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
         super({
             jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: process.env.JWT_SECRET || 'yobuildplus-secret-key',
+            secretOrKey: process.env.JWT_SECRET,
         });
         this.prisma = prisma;
     }
@@ -33,7 +33,10 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
             throw new common_1.UnauthorizedException();
         }
         const { password, ...result } = user;
-        return result;
+        return {
+            ...result,
+            builderId: user.builder?.id,
+        };
     }
 };
 exports.JwtStrategy = JwtStrategy;

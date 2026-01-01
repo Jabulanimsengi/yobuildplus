@@ -13,6 +13,8 @@ const builders_module_1 = require("./builders/builders.module");
 const categories_module_1 = require("./categories/categories.module");
 const admin_module_1 = require("./admin/admin.module");
 const auth_module_1 = require("./auth/auth.module");
+const quotes_module_1 = require("./quotes/quotes.module");
+const notifications_module_1 = require("./notifications/notifications.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -24,6 +26,8 @@ exports.AppModule = AppModule = __decorate([
             categories_module_1.CategoriesModule,
             admin_module_1.AdminModule,
             auth_module_1.AuthModule,
+            quotes_module_1.QuotesModule,
+            notifications_module_1.NotificationsModule,
         ],
     })
 ], AppModule);

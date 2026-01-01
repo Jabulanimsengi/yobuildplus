@@ -1,6 +1,6 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/builders/[slug]/page": "app/builders/[slug]/page.js",
-  "/builders/page": "app/builders/page.js",
-  "/page": "app/page.js"
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/contractors/[slug]/page": "app/contractors/[slug]/page.js",
+  "/dashboard/profile/page": "app/dashboard/profile/page.js",
+  "/login/page": "app/login/page.js"
 }

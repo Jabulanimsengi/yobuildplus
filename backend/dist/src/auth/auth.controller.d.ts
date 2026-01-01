@@ -45,7 +45,13 @@ export declare class AuthController {
                 callOutFee: number | null;
                 hourlyRate: number | null;
                 serviceAreas: string[];
+                operatingHours: import("@prisma/client/runtime/library").JsonValue | null;
                 approvalStatus: string;
+                subscriptionPlan: string;
+                subscriptionStatus: string;
+                subscriptionStart: Date | null;
+                subscriptionEnd: Date | null;
+                commissionRate: number;
             } | null;
             id: string;
             name: string;

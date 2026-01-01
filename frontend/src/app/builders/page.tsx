@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { BuilderCard } from '@/components/cards/BuilderCard';
+import { CompanyRowCard } from '@/components/cards/CompanyRowCard';
 import { FilterBar } from '@/components/filters/FilterBar';
 import { buildersApi } from '@/lib/api';
 import { Builder, Province, ServiceAttribute } from '@/types';
@@ -92,10 +92,10 @@ export default function BuildersPage() {
     return (
         <div className="min-h-screen bg-background">
             {/* Page Header */}
-            <div className="bg-gradient-to-r from-primary to-primary/90 text-white py-12">
-                <div className="container mx-auto px-4">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-4">Find Builders & Contractors</h1>
-                    <p className="text-white/80 max-w-2xl">
+            <div className="container mx-auto px-4 pt-8">
+                <div className="bg-slate-900 text-white py-12 px-6 md:px-8 rounded-2xl">
+                    <h1 className="text-3xl md:text-4xl font-bold mb-4">Find Contractors & Service Providers</h1>
+                    <p className="text-slate-300 max-w-2xl">
                         Browse our directory of verified professionals across South Africa.
                         Use the filters below to find the perfect match for your project.
                     </p>
@@ -133,7 +133,7 @@ export default function BuildersPage() {
                 {isLoading && (
                     <div className="flex items-center justify-center py-16">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        <span className="ml-3 text-muted-foreground">Loading builders...</span>
+                        <span className="ml-3 text-muted-foreground">Loading contractors...</span>
                     </div>
                 )}
 
@@ -141,7 +141,7 @@ export default function BuildersPage() {
                 {error && !isLoading && (
                     <div className="text-center py-16 bg-red-50 rounded-lg border-2 border-red-200">
                         <div className="text-4xl mb-4">⚠️</div>
-                        <h3 className="text-xl font-semibold text-red-800 mb-2">Error Loading Builders</h3>
+                        <h3 className="text-xl font-semibold text-red-800 mb-2">Error Loading Contractors</h3>
                         <p className="text-red-600 mb-4">{error}</p>
                         <button
                             onClick={() => window.location.reload()}
@@ -158,21 +158,21 @@ export default function BuildersPage() {
                         {/* Results Count */}
                         <div className="flex items-center justify-between mb-6">
                             <p className="text-muted-foreground">
-                                Showing <span className="font-semibold text-foreground">{filteredBuilders.length}</span> builders
+                                Showing <span className="font-semibold text-foreground">{filteredBuilders.length}</span> contractors
                             </p>
                         </div>
 
                         {/* Builder Grid */}
                         {filteredBuilders.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            <div className="flex flex-col gap-4">
                                 {filteredBuilders.map((builder) => (
-                                    <BuilderCard key={builder.id} builder={builder} />
+                                    <CompanyRowCard key={builder.id} builder={builder} />
                                 ))}
                             </div>
                         ) : (
                             <div className="text-center py-16 bg-white rounded-lg border-2 border-[#0EA5E9]/30">
                                 <div className="text-6xl mb-4">🔍</div>
-                                <h3 className="text-xl font-semibold text-foreground mb-2">No builders found</h3>
+                                <h3 className="text-xl font-semibold text-foreground mb-2">No contractors found</h3>
                                 <p className="text-muted-foreground mb-4">
                                     Try adjusting your filters or search terms
                                 </p>
