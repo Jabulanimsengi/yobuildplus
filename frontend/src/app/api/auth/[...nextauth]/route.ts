@@ -51,14 +51,35 @@ export const authOptions: NextAuthOptions = {
         const cookieStore = await cookies()
         const pendingRole = cookieStore.get('pendingRole')?.value
 
-        token.role = user.role || pendingRole || 'consumer' // Default to consumer if no cookie
+        token.role = user.role || pendingRole || 'client' // Default to client if no cookie
         token.builderId = user.builderId
         token.accessToken = user.accessToken
       }
-      // For Google OAuth, we can use the access token from the account
-      if (account?.provider === 'google') {
-        token.accessToken = account.access_token
+
+      // For Google OAuth, call backend to get a valid backend JWT
+      if (account?.provider === 'google' && user) {
+        try {
+          const { cookies } = await import("next/headers")
+          const cookieStore = await cookies()
+          const pendingRole = cookieStore.get('pendingRole')?.value
+
+          const { authApi } = await import("@/lib/api")
+          const res = await authApi.oauthLogin({
+            email: user.email!,
+            name: user.name || 'User',
+            role: pendingRole || 'client',
+          })
+
+          // Use the backend JWT token
+          token.accessToken = res.token
+          token.role = res.user.role || pendingRole || 'client'
+          token.builderId = res.user.builderId
+        } catch (error) {
+          console.error('Failed to get backend token for Google OAuth:', error)
+          // Fallback - user won't be able to make authenticated API calls
+        }
       }
+
       return token
     },
     async session({ session, token }) {

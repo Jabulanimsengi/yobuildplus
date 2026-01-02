@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
     Menu,
@@ -14,7 +15,9 @@ import {
     Briefcase,
     Info,
     LogIn,
-    Building2
+    Building2,
+    LogOut,
+    LayoutDashboard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +38,7 @@ import {
 } from '@/components/ui/collapsible';
 import { categories } from '@/data/categories';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { SignOutButton } from '@/components/auth/SignOutButton';
 import { cn } from '@/lib/utils';
 
 export function Header() {
@@ -42,6 +46,24 @@ export function Header() {
     const [searchQuery, setSearchQuery] = useState('');
     const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
     const { data: session } = useSession();
+    const pathname = usePathname();
+
+    // Hide header on dashboard, client, and admin routes (they have their own navigation)
+    const isDashboardRoute = pathname?.startsWith('/dashboard') ||
+        pathname?.startsWith('/client') ||
+        pathname?.startsWith('/admin');
+
+    if (isDashboardRoute) {
+        return null;
+    }
+
+    // Determine dashboard link based on user role
+    const getDashboardLink = () => {
+        if (session?.user?.role === 'client' && !session?.user?.builderId) {
+            return '/client';
+        }
+        return '/dashboard';
+    };
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -132,12 +154,26 @@ export function Header() {
                     {/* CTA Buttons - Desktop */}
                     <div className="hidden md:flex items-center gap-3">
                         <NotificationBell />
-                        <Button asChild variant="outline" className="border-slate-300 text-slate-700 hover:bg-slate-50">
-                            <Link href="/login">Sign In</Link>
-                        </Button>
-                        <Button asChild className="bg-[#F97316] hover:bg-[#EA580C] text-white font-medium border-0">
-                            <Link href="/get-listed">List Your Business</Link>
-                        </Button>
+                        {session ? (
+                            <>
+                                <Button asChild variant="outline" className="border-[#0EA5E9] text-[#0EA5E9] hover:bg-[#0EA5E9]/5">
+                                    <Link href={getDashboardLink()}>
+                                        <LayoutDashboard className="h-4 w-4 mr-2" />
+                                        Dashboard
+                                    </Link>
+                                </Button>
+                                <SignOutButton variant="ghost" className="text-slate-600 hover:text-slate-900" />
+                            </>
+                        ) : (
+                            <>
+                                <Button asChild variant="outline" className="border-slate-300 text-slate-700 hover:bg-slate-50">
+                                    <Link href="/login">Sign In</Link>
+                                </Button>
+                                <Button asChild className="bg-[#F97316] hover:bg-[#EA580C] text-white font-medium border-0">
+                                    <Link href="/get-listed">List Your Business</Link>
+                                </Button>
+                            </>
+                        )}
                     </div>
 
                     {/* Mobile: Notification + Menu */}
@@ -218,6 +254,20 @@ export function Header() {
 
                                 {/* Navigation Links - Scrollable */}
                                 <nav className="flex-1 overflow-y-auto p-4 space-y-1 pb-40">
+                                    {/* Dashboard Link for Logged In Users */}
+                                    {session && (
+                                        <Link
+                                            href={getDashboardLink()}
+                                            onClick={() => setIsOpen(false)}
+                                            className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0EA5E9]/10 text-[#0EA5E9] transition-all group"
+                                        >
+                                            <div className="h-9 w-9 rounded-lg bg-[#0EA5E9]/20 flex items-center justify-center transition-colors">
+                                                <LayoutDashboard className="h-5 w-5 text-[#0EA5E9]" />
+                                            </div>
+                                            <span className="font-medium">My Dashboard</span>
+                                        </Link>
+                                    )}
+
                                     {/* Main Links */}
                                     <Link
                                         href="/"
@@ -315,7 +365,12 @@ export function Header() {
                                             List Your Business
                                         </Link>
                                     </Button>
-                                    {!session && (
+                                    {session ? (
+                                        <SignOutButton
+                                            className="w-full border-red-200 text-red-600 hover:bg-red-50 font-medium rounded-xl justify-center"
+                                            variant="outline"
+                                        />
+                                    ) : (
                                         <Button
                                             asChild
                                             variant="outline"

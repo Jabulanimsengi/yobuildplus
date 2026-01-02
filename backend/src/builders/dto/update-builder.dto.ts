@@ -1,5 +1,5 @@
 
-import { IsString, IsOptional, IsEmail, IsUrl, IsArray, IsNumber, Min } from 'class-validator';
+import { IsString, IsOptional, IsEmail, IsUrl, IsArray, IsNumber, Min, IsObject, ValidateIf } from 'class-validator';
 
 export class UpdateBuilderDto {
     @IsOptional()
@@ -19,6 +19,7 @@ export class UpdateBuilderDto {
     email?: string;
 
     @IsOptional()
+    @ValidateIf((o) => o.website !== '' && o.website !== undefined)
     @IsUrl()
     website?: string;
 
@@ -58,4 +59,9 @@ export class UpdateBuilderDto {
     @IsArray()
     @IsString({ each: true })
     serviceAttributes?: string[];
+
+    @IsOptional()
+    @IsObject()
+    operatingHours?: Record<string, any>;
 }
+

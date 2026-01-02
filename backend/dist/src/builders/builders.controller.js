@@ -33,6 +33,12 @@ let BuildersController = class BuildersController {
     async findOne(slug) {
         return this.buildersService.findBySlug(slug);
     }
+    async createProfile(createData, req) {
+        if (req.user.builderId) {
+            throw new common_1.ConflictException('You already have a builder profile');
+        }
+        return this.buildersService.createProfile(req.user.id, createData);
+    }
     async updateProfile(id, updateData, req) {
         if (req.user.role !== 'admin' && req.user.builderId !== id) {
             throw new common_1.ForbiddenException('You are not authorized to update this profile');
@@ -58,6 +64,15 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], BuildersController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [update_builder_dto_1.UpdateBuilderDto, Object]),
+    __metadata("design:returntype", Promise)
+], BuildersController.prototype, "createProfile", null);
 __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Patch)(':id'),

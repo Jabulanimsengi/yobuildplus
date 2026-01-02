@@ -75,7 +75,7 @@ export default function CookiesPage() {
                         <section>
                             <h2 className="text-2xl font-bold text-slate-800 mb-4">Third-Party Cookies</h2>
                             <p className="text-slate-600 leading-relaxed">
-                                We use services from third parties that may set their own cookies, including Google Analytics, Facebook, and payment processors. These are governed by the respective third party's privacy policy.
+                                We use services from third parties that may set their own cookies, including Google Analytics, Facebook, and payment processors. These are governed by the respective third party&apos;s privacy policy.
                             </p>
                         </section>
 

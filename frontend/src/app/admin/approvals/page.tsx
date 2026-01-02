@@ -16,7 +16,7 @@ interface PendingBuilder {
     website?: string;
     city: string;
     description: string;
-    createdAt: string;
+    createdAt: Date;
 }
 
 export default function ApprovalQueuePage() {

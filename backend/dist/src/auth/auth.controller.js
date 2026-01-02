@@ -28,6 +28,9 @@ let AuthController = class AuthController {
     async login(loginDto) {
         return this.authService.login(loginDto);
     }
+    async oauthLogin(oauthDto) {
+        return this.authService.oauthLogin(oauthDto);
+    }
     async getMe(req) {
         return req.user;
     }
@@ -47,6 +50,13 @@ __decorate([
     __metadata("design:paramtypes", [auth_dto_1.LoginDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
+__decorate([
+    (0, common_1.Post)('oauth-login'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [auth_dto_1.OAuthLoginDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "oauthLogin", null);
 __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Get)('me'),

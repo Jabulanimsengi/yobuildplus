@@ -96,6 +96,36 @@ let AuthService = class AuthService {
             token,
         };
     }
+    async oauthLogin(oauthDto) {
+        let user = await this.prisma.user.findUnique({
+            where: { email: oauthDto.email },
+            include: { builder: true },
+        });
+        let isNewUser = false;
+        if (!user) {
+            isNewUser = true;
+            const randomPassword = await bcrypt.hash(Math.random().toString(36), 10);
+            user = await this.prisma.user.create({
+                data: {
+                    email: oauthDto.email,
+                    password: randomPassword,
+                    name: oauthDto.name,
+                    role: oauthDto.role || 'consumer',
+                },
+                include: { builder: true },
+            });
+        }
+        const { password, ...result } = user;
+        const token = this.jwtService.sign({ sub: user.id, email: user.email, role: user.role });
+        return {
+            user: {
+                ...result,
+                builderId: user.builder?.id,
+            },
+            token,
+            isNewUser,
+        };
+    }
     async getMe(userId) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },

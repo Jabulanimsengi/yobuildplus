@@ -19,7 +19,7 @@ model User {
   email     String   @unique
   password  String
   name      String
-  role      String   @default("consumer") // admin, contractor, consumer
+  role      String   @default("client") // admin, contractor, client
   
   builderId String?  @unique
   builder   Builder? @relation(fields: [builderId], references: [id])

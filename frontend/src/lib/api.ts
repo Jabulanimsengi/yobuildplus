@@ -166,6 +166,14 @@ export const authApi = {
         });
     },
 
+    // OAuth login (for Google, etc.) - creates user if needed and returns backend JWT
+    oauthLogin: (data: { email: string; name: string; role?: string }) => {
+        return apiFetch<{ user: AuthUser & { builderId?: string }; token: string }>('/api/auth/oauth-login', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    },
+
     // Get current user
     me: (token: string) => {
         return apiFetch<AuthUser>('/api/auth/me', {
@@ -177,3 +185,4 @@ export const authApi = {
 };
 
 export default { builders: buildersApi, admin: adminApi, categories: categoriesApi, auth: authApi };
+

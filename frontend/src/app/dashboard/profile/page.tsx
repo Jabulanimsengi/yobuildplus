@@ -18,6 +18,9 @@ import { OperatingHours, DayHours } from '@/types';
 import { getAllSubcategories } from '@/data/categories';
 import { locationsData } from '@/data/locations';
 import { MapboxAddressAutocomplete } from '@/components/ui/mapbox-address-autocomplete';
+import { FormLabel, FormError } from '@/components/ui/FormLabel';
+import { useDraftProfile, formatTimeAgo } from '@/hooks/useDraftProfile';
+import { validateProfile, mapBackendError, ValidationErrors, hasErrors } from '@/lib/validation';
 
 const DEFAULT_HOURS: DayHours = { open: '08:00', close: '17:00', closed: false };
 const DEFAULT_OPERATING_HOURS: OperatingHours = {
@@ -54,9 +57,12 @@ export default function ProfileEditorPage() {
     const { data: session } = useSession();
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isSavingDraft, setIsSavingDraft] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [builderId, setBuilderId] = useState<string | null>(null);
+    const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
     // Form State
     const [formData, setFormData] = useState<ProfileData>({
@@ -191,6 +197,27 @@ export default function ProfileEditorPage() {
 
     const confirmSave = async () => {
         setShowConfirmDialog(false);
+        setSaveError(null);
+
+        // Validate form before saving
+        const errors = validateProfile({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            description: formData.description,
+            serviceAreas: formData.serviceAreas,
+            serviceAttributes: formData.serviceAttributes,
+            website: formData.website,
+        });
+
+        if (hasErrors(errors)) {
+            setValidationErrors(errors);
+            const firstError = Object.values(errors)[0];
+            setSaveError(firstError || 'Please fix the errors above before saving.');
+            return;
+        }
+
+        setValidationErrors({});
 
         try {
             setIsSaving(true);
@@ -201,7 +228,7 @@ export default function ProfileEditorPage() {
                 description: formData.description,
                 phone: formData.phone,
                 email: formData.email,
-                website: formData.website,
+                website: formData.website || undefined,
                 address: formData.address,
                 logo: formData.logo || undefined,
                 coverImage: formData.coverImage || undefined,
@@ -219,7 +246,7 @@ export default function ProfileEditorPage() {
             } else {
                 // Create new profile
                 if (!session?.accessToken) {
-                    alert('You must be logged in to create a profile.');
+                    setSaveError('Please sign out and sign back in to continue.');
                     return;
                 }
                 const newBuilder = await buildersApi.createProfile(profileData, session.accessToken);
@@ -228,13 +255,49 @@ export default function ProfileEditorPage() {
 
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to save profile:', error);
-            alert('Failed to save profile. Please try again.');
+            const friendlyMessage = mapBackendError(error.message || 'Unknown error');
+            setSaveError(friendlyMessage);
         } finally {
             setIsSaving(false);
         }
     };
+
+    // Save draft handler
+    const handleSaveDraft = () => {
+        setIsSavingDraft(true);
+        try {
+            if (typeof window !== 'undefined') {
+                const draftData = {
+                    data: formData,
+                    savedAt: new Date().toISOString(),
+                };
+                localStorage.setItem('yobuildplus_profile_draft', JSON.stringify(draftData));
+            }
+            setTimeout(() => setIsSavingDraft(false), 500);
+        } catch (error) {
+            console.error('Failed to save draft:', error);
+            setIsSavingDraft(false);
+        }
+    };
+
+    // Load draft on mount
+    useEffect(() => {
+        if (typeof window !== 'undefined' && !builderId) {
+            try {
+                const stored = localStorage.getItem('yobuildplus_profile_draft');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (parsed.data) {
+                        setFormData(prev => ({ ...prev, ...parsed.data }));
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load draft:', error);
+            }
+        }
+    }, [builderId]);
 
     // Handlers
     const handleAddService = (e: React.FormEvent) => {
@@ -315,8 +378,14 @@ export default function ProfileEditorPage() {
         <div className="space-y-6 max-w-5xl mx-auto pb-10">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900">Edit Profile</h1>
-                    <p className="text-slate-500">Manage your complete public listing information.</p>
+                    <h1 className="text-3xl font-bold text-slate-900">
+                        {builderId ? 'Edit Profile' : 'Create Your Profile'}
+                    </h1>
+                    <p className="text-slate-500">
+                        {builderId
+                            ? 'Manage your complete public listing information.'
+                            : 'Fill in your business details to start receiving leads from customers.'}
+                    </p>
                 </div>
                 <div className="flex gap-3 items-center">
                     {saveSuccess && (
@@ -324,28 +393,66 @@ export default function ProfileEditorPage() {
                             <CheckCircle2 className="h-4 w-4 mr-1" /> Saved!
                         </span>
                     )}
-                    <Button variant="outline" onClick={() => window.open(`/contractors/${formData.name.toLowerCase().replace(/\s+/g, '-')}`, '_blank')}>
-                        View Public Profile
-                    </Button>
-                    <Button
-                        className="bg-[#0EA5E9] hover:bg-[#0284C7] text-white"
-                        onClick={handleSaveClick}
-                        disabled={isSaving}
-                    >
-                        {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                        {isSaving ? 'Saving...' : 'Save Changes'}
-                    </Button>
+                    {builderId && (
+                        <Button variant="outline" onClick={() => window.open(`/contractors/${formData.name.toLowerCase().replace(/\s+/g, '-')}`, '_blank')}>
+                            View Public Profile
+                        </Button>
+                    )}
                 </div>
             </div>
 
+            {/* Error Alert */}
+            {saveError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+                    <div className="text-red-500 mt-0.5">
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-sm font-medium text-red-800">Unable to save profile</p>
+                        <p className="text-sm text-red-600 mt-1">{saveError}</p>
+                    </div>
+                    <button
+                        onClick={() => setSaveError(null)}
+                        className="text-red-400 hover:text-red-600"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+            )}
+
             <Tabs defaultValue="general" className="w-full">
-                <TabsList className="grid w-full grid-cols-5 lg:w-[750px] mb-8">
-                    <TabsTrigger value="general">Details</TabsTrigger>
-                    <TabsTrigger value="rates">Services & Rates</TabsTrigger>
-                    <TabsTrigger value="hours">Operating Hours</TabsTrigger>
-                    <TabsTrigger value="media">Media & Portfolio</TabsTrigger>
-                    <TabsTrigger value="projects">Projects</TabsTrigger>
-                </TabsList>
+                {/* Tab Navigation with scroll indicators */}
+                <div className="relative mb-6">
+                    {/* Gradient fade on right to indicate more content */}
+                    <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none md:hidden" />
+
+                    <div className="overflow-x-auto -mx-4 px-4 scrollbar-hide">
+                        <TabsList className="inline-flex w-max gap-1 bg-slate-100 p-1 rounded-lg">
+                            <TabsTrigger value="general" className="flex-shrink-0 px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md text-sm font-medium">
+                                Details
+                            </TabsTrigger>
+                            <TabsTrigger value="rates" className="flex-shrink-0 px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md text-sm font-medium">
+                                Services
+                            </TabsTrigger>
+                            <TabsTrigger value="hours" className="flex-shrink-0 px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md text-sm font-medium">
+                                Hours
+                            </TabsTrigger>
+                            <TabsTrigger value="media" className="flex-shrink-0 px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md text-sm font-medium">
+                                Media
+                            </TabsTrigger>
+                            <TabsTrigger value="projects" className="flex-shrink-0 px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md text-sm font-medium">
+                                Projects
+                            </TabsTrigger>
+                        </TabsList>
+                    </div>
+
+                    {/* Swipe hint for mobile */}
+                    <p className="text-xs text-slate-400 mt-2 text-center md:hidden">
+                        ← Swipe to see more sections →
+                    </p>
+                </div>
 
                 {/* === GENERAL TAB === */}
                 <TabsContent value="general" className="space-y-6">
@@ -357,7 +464,7 @@ export default function ProfileEditorPage() {
                         <CardContent className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Company Name</label>
+                                    <FormLabel required>Business Name</FormLabel>
                                     <div className="relative">
                                         <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                         <Input
@@ -368,7 +475,7 @@ export default function ProfileEditorPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Year Established</label>
+                                    <FormLabel optional>Year Established</FormLabel>
                                     <Input
                                         value={formData.yearStarted}
                                         onChange={(e) => setFormData({ ...formData, yearStarted: parseInt(e.target.value) || 2020 })}
@@ -378,7 +485,7 @@ export default function ProfileEditorPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                                <FormLabel required>Description</FormLabel>
                                 <textarea
                                     className="w-full min-h-[120px] px-3 py-2 rounded-md border border-slate-200 focus:outline-none focus:border-[#0EA5E9] text-sm"
                                     value={formData.description}
@@ -389,7 +496,7 @@ export default function ProfileEditorPage() {
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Team Size</label>
+                                    <FormLabel optional>Team Size</FormLabel>
                                     <Input
                                         value={formData.teamSize}
                                         onChange={(e) => setFormData({ ...formData, teamSize: parseInt(e.target.value) || 1 })}
@@ -397,7 +504,7 @@ export default function ProfileEditorPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Projects Completed</label>
+                                    <FormLabel optional>Projects Completed</FormLabel>
                                     <Input
                                         value={formData.projectsCompleted}
                                         onChange={(e) => setFormData({ ...formData, projectsCompleted: parseInt(e.target.value) || 0 })}
@@ -405,7 +512,7 @@ export default function ProfileEditorPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Business Reg No.</label>
+                                    <FormLabel optional>Business Reg No.</FormLabel>
                                     <Input placeholder="Optional" />
                                 </div>
                             </div>
@@ -420,7 +527,7 @@ export default function ProfileEditorPage() {
                         <CardContent className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                                    <FormLabel required>Email Address</FormLabel>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                         <Input
@@ -431,7 +538,7 @@ export default function ProfileEditorPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
+                                    <FormLabel required>Phone Number</FormLabel>
                                     <div className="relative">
                                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                         <Input
@@ -444,7 +551,7 @@ export default function ProfileEditorPage() {
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Website URL</label>
+                                    <FormLabel optional>Website URL</FormLabel>
                                     <div className="relative">
                                         <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                         <Input
@@ -455,7 +562,7 @@ export default function ProfileEditorPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Physical Address / Headquarters</label>
+                                    <FormLabel optional>Physical Address / Headquarters</FormLabel>
                                     <MapboxAddressAutocomplete
                                         value={formData.address}
                                         onChange={(address) => setFormData({ ...formData, address })}
@@ -477,7 +584,7 @@ export default function ProfileEditorPage() {
                         <CardContent className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Call Out Fee (R)</label>
+                                    <FormLabel optional>Call Out Fee (R)</FormLabel>
                                     <div className="relative">
                                         <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                         <Input
@@ -491,7 +598,7 @@ export default function ProfileEditorPage() {
                                     <p className="text-xs text-slate-500 mt-1">Flat rate for visiting a site.</p>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Standard Hourly Rate (R)</label>
+                                    <FormLabel optional>Standard Hourly Rate (R)</FormLabel>
                                     <div className="relative">
                                         <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                         <Input
@@ -516,7 +623,7 @@ export default function ProfileEditorPage() {
                         <CardContent className="space-y-6">
                             {/* Skills */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-3">Skills & Services</label>
+                                <FormLabel required>Skills & Services</FormLabel>
                                 <div className="flex flex-wrap gap-2 mb-4 p-4 bg-slate-50 rounded-lg border border-slate-100">
                                     {formData.serviceAttributes.map(service => (
                                         <Badge key={service} variant="secondary" className="gap-1 pl-3 pr-2 py-1.5 text-sm bg-white border border-slate-200 text-slate-700">
@@ -559,7 +666,7 @@ export default function ProfileEditorPage() {
 
                             {/* Service Areas */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-3">Service Areas (Suburbs/Cities)</label>
+                                <FormLabel required>Service Areas (Suburbs/Cities)</FormLabel>
                                 <div className="flex flex-wrap gap-2 mb-4 p-4 bg-slate-50 rounded-lg border border-slate-100">
                                     {formData.serviceAreas.map(area => (
                                         <Badge key={area} variant="secondary" className="gap-1 pl-3 pr-2 py-1.5 text-sm bg-white border border-slate-200 text-slate-700">
@@ -614,13 +721,23 @@ export default function ProfileEditorPage() {
                             </CardTitle>
                             <CardDescription>Set your business hours for each day of the week.</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-3">
                             {(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const).map((day) => (
-                                <div key={day} className="flex items-center gap-4 py-3 border-b border-slate-100 last:border-0">
-                                    <div className="w-28">
+                                <div key={day} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 py-3 border-b border-slate-100 last:border-0">
+                                    <div className="flex items-center justify-between sm:justify-start sm:w-28">
                                         <span className="font-medium capitalize text-slate-700">{day}</span>
+                                        <div className="flex items-center gap-2 sm:hidden">
+                                            <Checkbox
+                                                id={`${day}-closed-mobile`}
+                                                checked={formData.operatingHours[day].closed}
+                                                onCheckedChange={(checked) => updateHours(day, 'closed', checked === true)}
+                                            />
+                                            <label htmlFor={`${day}-closed-mobile`} className="text-sm text-slate-600 cursor-pointer">
+                                                Closed
+                                            </label>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="hidden sm:flex items-center gap-2">
                                         <Checkbox
                                             id={`${day}-closed`}
                                             checked={formData.operatingHours[day].closed}
@@ -636,14 +753,14 @@ export default function ProfileEditorPage() {
                                                 type="time"
                                                 value={formData.operatingHours[day].open}
                                                 onChange={(e) => updateHours(day, 'open', e.target.value)}
-                                                className="w-32"
+                                                className="flex-1 sm:w-32 sm:flex-none"
                                             />
-                                            <span className="text-slate-400">to</span>
+                                            <span className="text-slate-400 text-sm">to</span>
                                             <Input
                                                 type="time"
                                                 value={formData.operatingHours[day].close}
                                                 onChange={(e) => updateHours(day, 'close', e.target.value)}
-                                                className="w-32"
+                                                className="flex-1 sm:w-32 sm:flex-none"
                                             />
                                         </div>
                                     )}
@@ -742,35 +859,43 @@ export default function ProfileEditorPage() {
                         <CardContent>
                             <div className="space-y-4">
                                 {/* Mock Project Item */}
-                                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:border-[#0EA5E9] transition-colors bg-white">
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-12 w-12 bg-slate-100 rounded flex items-center justify-center">
-                                            <Briefcase className="h-5 w-5 text-slate-400" />
+                                <div className="p-4 border border-slate-200 rounded-lg hover:border-[#0EA5E9] transition-colors bg-white">
+                                    <div className="flex items-start gap-3">
+                                        <div className="h-10 w-10 sm:h-12 sm:w-12 bg-slate-100 rounded flex items-center justify-center flex-shrink-0">
+                                            <Briefcase className="h-4 w-4 sm:h-5 sm:w-5 text-slate-400" />
                                         </div>
-                                        <div>
-                                            <h4 className="font-semibold text-slate-800">Kitchen Renovation - Sandton</h4>
-                                            <p className="text-sm text-slate-500">Completed Mar 2024 • Residential</p>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                                <div>
+                                                    <h4 className="font-semibold text-slate-800 text-sm sm:text-base">Kitchen Renovation - Sandton</h4>
+                                                    <p className="text-xs sm:text-sm text-slate-500">Completed Mar 2024 • Residential</p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50 text-xs">Completed</Badge>
+                                                    <Button variant="ghost" size="sm" className="text-xs sm:text-sm h-8 px-2">Edit</Button>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">Completed</Badge>
-                                        <Button variant="ghost" size="sm">Edit</Button>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:border-[#0EA5E9] transition-colors bg-white">
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-12 w-12 bg-slate-100 rounded flex items-center justify-center">
-                                            <Briefcase className="h-5 w-5 text-slate-400" />
+                                <div className="p-4 border border-slate-200 rounded-lg hover:border-[#0EA5E9] transition-colors bg-white">
+                                    <div className="flex items-start gap-3">
+                                        <div className="h-10 w-10 sm:h-12 sm:w-12 bg-slate-100 rounded flex items-center justify-center flex-shrink-0">
+                                            <Briefcase className="h-4 w-4 sm:h-5 sm:w-5 text-slate-400" />
                                         </div>
-                                        <div>
-                                            <h4 className="font-semibold text-slate-800">Office Block Painting</h4>
-                                            <p className="text-sm text-slate-500">Ongoing • Commercial</p>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                                <div>
+                                                    <h4 className="font-semibold text-slate-800 text-sm sm:text-base">Office Block Painting</h4>
+                                                    <p className="text-xs sm:text-sm text-slate-500">Ongoing • Commercial</p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Badge variant="outline" className="text-[#0EA5E9] border-blue-200 bg-blue-50 text-xs">Ongoing</Badge>
+                                                    <Button variant="ghost" size="sm" className="text-xs sm:text-sm h-8 px-2">Edit</Button>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Badge variant="outline" className="text-[#0EA5E9] border-blue-200 bg-blue-50">Ongoing</Badge>
-                                        <Button variant="ghost" size="sm">Edit</Button>
                                     </div>
                                 </div>
                             </div>
@@ -778,6 +903,30 @@ export default function ProfileEditorPage() {
                     </Card>
                 </TabsContent>
             </Tabs>
+
+            {/* Bottom Action Bar */}
+            <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 mt-6 -mx-4 md:-mx-8 shadow-lg">
+                <div className="max-w-5xl mx-auto flex flex-col sm:flex-row gap-3 justify-end">
+                    {!builderId && (
+                        <Button
+                            variant="outline"
+                            onClick={handleSaveDraft}
+                            disabled={isSavingDraft}
+                            className="sm:w-auto w-full"
+                        >
+                            {isSavingDraft ? 'Saving...' : 'Save Draft'}
+                        </Button>
+                    )}
+                    <Button
+                        className="bg-[#0EA5E9] hover:bg-[#0284C7] text-white sm:w-auto w-full"
+                        onClick={handleSaveClick}
+                        disabled={isSaving}
+                    >
+                        {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                        {isSaving ? 'Saving...' : builderId ? 'Save Changes' : 'Create Profile'}
+                    </Button>
+                </div>
+            </div>
 
             {/* Confirmation Dialog */}
             {showConfirmDialog && (

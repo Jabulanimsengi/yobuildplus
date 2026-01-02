@@ -12,12 +12,12 @@ export declare class JwtStrategy extends JwtStrategy_base {
             description: string;
             createdAt: Date;
             updatedAt: Date;
+            city: string;
             logo: string | null;
             coverImage: string | null;
             yearStarted: number;
             teamSize: number;
             projectsCompleted: number;
-            city: string;
             address: string;
             phone: string;
             email: string;

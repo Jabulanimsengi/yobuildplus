@@ -51,12 +51,12 @@ export declare class CategoriesService {
             description: string;
             createdAt: Date;
             updatedAt: Date;
+            city: string;
             logo: string | null;
             coverImage: string | null;
             yearStarted: number;
             teamSize: number;
             projectsCompleted: number;
-            city: string;
             address: string;
             phone: string;
             email: string;

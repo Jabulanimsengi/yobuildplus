@@ -1,8 +1,8 @@
 import { MetadataRoute } from 'next';
 import { categories } from '@/data/categories';
-import { mockBuilders } from '@/data/mock-data';
 import { locationsData, getAllLocations } from '@/data/locations';
 import { seoKeywords } from '@/data/seo-keywords';
+import { buildersApi } from '@/lib/api';
 
 const BASE_URL = 'https://yobuildplus.co.za';
 
@@ -33,7 +33,7 @@ export async function generateSitemaps() {
     return sitemaps;
 }
 
-export default function sitemap({ id }: { id: string }): MetadataRoute.Sitemap {
+export default async function sitemap({ id }: { id: string }): Promise<MetadataRoute.Sitemap> {
     // === 1. STATIC ACTIONS ===
     if (id === 'static') {
         // Base static routes
@@ -70,13 +70,20 @@ export default function sitemap({ id }: { id: string }): MetadataRoute.Sitemap {
             return [main, ...subs];
         });
 
-        // Builder Routes (Mock)
-        const builderRoutes = mockBuilders.map((builder) => ({
-            url: `${BASE_URL}/builders/${builder.slug}`,
-            lastModified: builder.updatedAt || new Date(),
-            changeFrequency: 'weekly' as const,
-            priority: 0.9,
-        }));
+        // Builder Routes - fetch from API
+        let builderRoutes: MetadataRoute.Sitemap = [];
+        try {
+            const builders = await buildersApi.getAll();
+            builderRoutes = builders.map((builder) => ({
+                url: `${BASE_URL}/builders/${builder.slug}`,
+                lastModified: builder.updatedAt ? new Date(builder.updatedAt) : new Date(),
+                changeFrequency: 'weekly' as const,
+                priority: 0.9,
+            }));
+        } catch (error) {
+            console.error('Failed to fetch builders for sitemap:', error);
+            // Continue without builder routes if API fails
+        }
 
         // Base Keyword Routes (No Locations)
         const keywordRoutes = seoKeywords.map((kw) => ({

@@ -1,6 +1,11 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
   "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
-  "/contractors/[slug]/page": "app/contractors/[slug]/page.js",
-  "/dashboard/profile/page": "app/dashboard/profile/page.js",
-  "/login/page": "app/login/page.js"
+  "/client/favorites/page": "app/client/favorites/page.js",
+  "/client/page": "app/client/page.js",
+  "/consumer/favorites/page": "app/consumer/favorites/page.js",
+  "/contractors/page": "app/contractors/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/login/page": "app/login/page.js",
+  "/page": "app/page.js"
 }

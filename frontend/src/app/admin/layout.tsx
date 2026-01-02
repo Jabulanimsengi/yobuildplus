@@ -4,11 +4,11 @@ import {
     CheckSquare,
     Users,
     Settings,
-    LogOut,
     Menu,
     Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SignOutButton } from '@/components/auth/SignOutButton';
 
 export default function AdminLayout({
     children,
@@ -49,10 +49,7 @@ export default function AdminLayout({
                 </nav>
 
                 <div className="p-4 border-t border-slate-800">
-                    <Button variant="ghost" className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800">
-                        <LogOut className="h-5 w-5 mr-3" />
-                        Sign Out
-                    </Button>
+                    <SignOutButton className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800" />
                 </div>
             </aside>
 

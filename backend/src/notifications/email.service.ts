@@ -96,7 +96,7 @@ export class EmailService {
                 <li>They send you a detailed quotation</li>
             </ul>
             <p style="margin: 20px 0;">
-                <a href="${this.frontendUrl}/dashboard/my-quotes" 
+                <a href="${this.frontendUrl}/client/quotes" 
                    style="background: #0EA5E9; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">
                     Track Your Requests
                 </a>
@@ -148,7 +148,7 @@ export class EmailService {
             </ol>
             ` : ''}
             <p style="margin: 20px 0;">
-                <a href="${this.frontendUrl}/dashboard/my-quotes" 
+                <a href="${this.frontendUrl}/client/quotes" 
                    style="background: #0EA5E9; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">
                     View Details
                 </a>
@@ -184,7 +184,7 @@ export class EmailService {
                 <li><strong>Counter-Propose</strong> - Suggest a different amount</li>
             </ul>
             <p style="margin: 20px 0;">
-                <a href="${this.frontendUrl}/dashboard/my-quotes/${quoteId}" 
+                <a href="${this.frontendUrl}/client/quotes" 
                    style="background: #0EA5E9; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none;">
                     View Full Quotation
                 </a>

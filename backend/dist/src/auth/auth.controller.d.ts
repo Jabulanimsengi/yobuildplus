@@ -1,5 +1,5 @@
 import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, OAuthLoginDto } from './dto/auth.dto';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
@@ -10,8 +10,8 @@ export declare class AuthController {
             createdAt: Date;
             updatedAt: Date;
             email: string;
-            role: string;
             builderId: string | null;
+            role: string;
         };
         token: string;
     }>;
@@ -24,12 +24,61 @@ export declare class AuthController {
                 description: string;
                 createdAt: Date;
                 updatedAt: Date;
+                city: string;
                 logo: string | null;
                 coverImage: string | null;
                 yearStarted: number;
                 teamSize: number;
                 projectsCompleted: number;
+                address: string;
+                phone: string;
+                email: string;
+                website: string | null;
+                rating: number;
+                reviewCount: number;
+                verified: boolean;
+                serviceAttributes: string[];
+                photos: string[];
+                provinces: string[];
+                latitude: number | null;
+                longitude: number | null;
+                callOutFee: number | null;
+                hourlyRate: number | null;
+                serviceAreas: string[];
+                operatingHours: import("@prisma/client/runtime/library").JsonValue | null;
+                approvalStatus: string;
+                subscriptionPlan: string;
+                subscriptionStatus: string;
+                subscriptionStart: Date | null;
+                subscriptionEnd: Date | null;
+                commissionRate: number;
+            } | null;
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            email: string;
+            builderId: string | null;
+            role: string;
+        };
+        token: string;
+    }>;
+    oauthLogin(oauthDto: OAuthLoginDto): Promise<{
+        user: {
+            builderId: string | undefined;
+            builder: {
+                id: string;
+                slug: string;
+                name: string;
+                description: string;
+                createdAt: Date;
+                updatedAt: Date;
                 city: string;
+                logo: string | null;
+                coverImage: string | null;
+                yearStarted: number;
+                teamSize: number;
+                projectsCompleted: number;
                 address: string;
                 phone: string;
                 email: string;
@@ -59,9 +108,9 @@ export declare class AuthController {
             updatedAt: Date;
             email: string;
             role: string;
-            builderId: string | null;
         };
         token: string;
+        isNewUser: boolean;
     }>;
     getMe(req: any): Promise<any>;
 }

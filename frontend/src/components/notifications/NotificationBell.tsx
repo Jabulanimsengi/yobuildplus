@@ -136,14 +136,27 @@ export function NotificationBell() {
     };
 
     const getNotificationLink = (notification: Notification) => {
+        // Determine if user is a consumer (not a builder)
+        const isConsumer = session?.user?.role === 'client' && !session?.user?.builderId;
+
+        // Builder-targeted notifications (they are the contractor receiving these)
         if (notification.type === 'quote_request' || notification.type === 'quote_accepted' ||
-            notification.type === 'quote_rejected' || notification.type === 'quote_considering') {
+            notification.type === 'quote_rejected' || notification.type === 'quote_considering' ||
+            notification.type === 'counter_proposal' || notification.type === 'project_created') {
             return '/dashboard/leads';
         }
-        if (notification.type === 'quote_response') {
+
+        // Consumer-targeted notifications (they requested the quote)
+        if (notification.type === 'quote_response' || notification.type === 'request_accepted' ||
+            notification.type === 'request_rejected' || notification.type === 'request_considered') {
+            if (isConsumer) {
+                return notification.quote ? `/client/quotes` : '/client/quotes';
+            }
             return notification.quote ? `/dashboard/my-quotes/${notification.quote.id}` : '/dashboard/my-quotes';
         }
-        return '/dashboard';
+
+        // Default: route based on role
+        return isConsumer ? '/client' : '/dashboard';
     };
 
     const formatTime = (dateString: string) => {
@@ -255,7 +268,13 @@ export function NotificationBell() {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild className="py-3">
-                    <Link href="/dashboard/notifications" className="w-full text-center text-sm text-[#0EA5E9] font-medium">
+                    <Link
+                        href={session?.user?.role === 'client' && !session?.user?.builderId
+                            ? '/client/quotes'
+                            : '/dashboard/leads'
+                        }
+                        className="w-full text-center text-sm text-[#0EA5E9] font-medium"
+                    >
                         View all notifications
                     </Link>
                 </DropdownMenuItem>

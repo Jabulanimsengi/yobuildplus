@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Mail, Phone, MapPin, Send, MessageSquare, Loader2, CheckCircle, Clock, Building } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 export default function ContactPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -149,7 +148,7 @@ export default function ContactPage() {
                     <div className="lg:col-span-2">
                         <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
                             <h2 className="text-2xl font-bold text-slate-900 mb-2">Send us a message</h2>
-                            <p className="text-slate-500 mb-6">Fill out the form below and we'll get back to you within 24 hours.</p>
+                            <p className="text-slate-500 mb-6">Fill out the form below and we&apos;ll get back to you within 24 hours.</p>
 
                             {isSubmitted ? (
                                 <div className="py-12 text-center">
@@ -157,7 +156,7 @@ export default function ContactPage() {
                                         <CheckCircle className="h-8 w-8 text-emerald-600" />
                                     </div>
                                     <h3 className="text-xl font-bold text-slate-900 mb-2">Message Sent!</h3>
-                                    <p className="text-slate-600">Thank you for reaching out. We'll get back to you shortly.</p>
+                                    <p className="text-slate-600">Thank you for reaching out. We&apos;ll get back to you shortly.</p>
                                 </div>
                             ) : (
                                 <form className="space-y-5" onSubmit={handleSubmit}>

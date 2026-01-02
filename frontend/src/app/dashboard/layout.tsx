@@ -1,20 +1,56 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import {
     LayoutDashboard,
     MessageSquare,
     User,
     Settings,
-    LogOut,
-    Menu
+    Loader2
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { SignOutButton } from '@/components/auth/SignOutButton';
+import { MobileMenu } from '@/components/dashboard/MobileMenu';
 
 export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const { data: session, status } = useSession();
+    const router = useRouter();
+    const [isChecking, setIsChecking] = useState(true);
+
+    // Role-based access control
+    useEffect(() => {
+        if (status === 'loading') return;
+
+        if (!session) {
+            router.push('/login');
+            return;
+        }
+
+        // Redirect consumers to consumer dashboard
+        // Only redirect if user has consumer role AND does NOT have a builderId
+        if (session.user?.role === 'client' && !session.user?.builderId) {
+            router.push('/client');
+            return;
+        }
+
+        setIsChecking(false);
+    }, [session, status, router]);
+
+    if (status === 'loading' || isChecking) {
+        return (
+            <div className="h-screen flex items-center justify-center bg-slate-50">
+                <Loader2 className="h-8 w-8 animate-spin text-[#0EA5E9]" />
+            </div>
+        );
+    }
+
     return (
         <div className="h-screen bg-slate-50 flex overflow-hidden">
             {/* Sidebar */}
@@ -58,28 +94,23 @@ export default function DashboardLayout({
 
                 {/* Sidebar Footer - Fixed */}
                 <div className="p-4 border-t border-slate-800">
-                    <Button variant="ghost" className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800">
-                        <LogOut className="h-5 w-5 mr-3" />
-                        Sign Out
-                    </Button>
+                    <SignOutButton className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800" />
                 </div>
             </aside>
 
             {/* Mobile Header (Visible only on small screens) */}
-            <div className="md:hidden fixed top-0 left-0 right-0 bg-slate-900 z-50 px-4 py-3 flex items-center justify-between">
+            <div className="md:hidden fixed top-0 left-0 right-0 bg-slate-900 z-50 px-4 py-2 flex items-center justify-between">
                 <Link href="/dashboard" className="flex items-center gap-2">
                     <Image
                         src="/yobuild+.png"
                         alt="Yobuildplus"
-                        width={32}
-                        height={32}
-                        className="rounded"
+                        width={40}
+                        height={40}
+                        className="flex-shrink-0"
                     />
-                    <span className="font-bold text-white">Contractor Portal</span>
+                    <span className="font-bold text-white text-sm">Contractor Portal</span>
                 </Link>
-                <Button size="icon" variant="ghost" className="text-white">
-                    <Menu className="h-6 w-6" />
-                </Button>
+                <MobileMenu />
             </div>
 
             {/* Main Content - Scrollable with opaque background */}
