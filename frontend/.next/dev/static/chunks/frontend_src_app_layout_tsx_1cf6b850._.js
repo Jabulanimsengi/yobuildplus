@@ -3,7 +3,7 @@
     chunks: [
   "static/chunks/[root-of-the-server]__28691766._.css",
   "static/chunks/frontend_src_233ccbd8._.js",
-  "static/chunks/node_modules_6d48eaac._.js"
+  "static/chunks/node_modules_e1de741e._.js"
 ],
     source: "dynamic"
 });

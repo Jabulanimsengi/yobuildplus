@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, BadgeCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -20,10 +20,12 @@ interface FilterBarProps {
     selectedProvince?: Province;
     selectedRating?: number;
     selectedAttributes: ServiceAttribute[];
+    verifiedOnly?: boolean;
     onCategoryChange: (category: string | undefined) => void;
     onProvinceChange: (province: Province | undefined) => void;
     onRatingChange: (rating: number | undefined) => void;
     onAttributeToggle: (attribute: ServiceAttribute) => void;
+    onVerifiedOnlyChange?: (verified: boolean) => void;
     onClearFilters: () => void;
     className?: string;
 }
@@ -33,10 +35,12 @@ export function FilterBar({
     selectedProvince,
     selectedRating,
     selectedAttributes,
+    verifiedOnly = false,
     onCategoryChange,
     onProvinceChange,
     onRatingChange,
     onAttributeToggle,
+    onVerifiedOnlyChange,
     onClearFilters,
     className,
 }: FilterBarProps) {
@@ -46,7 +50,8 @@ export function FilterBar({
         selectedCategory ||
         selectedProvince ||
         selectedRating ||
-        selectedAttributes.length > 0;
+        selectedAttributes.length > 0 ||
+        verifiedOnly;
 
     const displayedCategories = showAllCategories ? categories : categories.slice(0, 4);
 
@@ -144,6 +149,24 @@ export function FilterBar({
                         <SelectItem value="3">3+ Stars</SelectItem>
                     </SelectContent>
                 </Select>
+
+                {/* Verified Only Toggle */}
+                {onVerifiedOnlyChange && (
+                    <Button
+                        variant={verifiedOnly ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => onVerifiedOnlyChange(!verifiedOnly)}
+                        className={cn(
+                            'flex items-center gap-1.5',
+                            verifiedOnly
+                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                : 'border-blue-300 text-blue-600 hover:bg-blue-50'
+                        )}
+                    >
+                        <BadgeCheck className="h-4 w-4" />
+                        Verified Only
+                    </Button>
+                )}
 
                 {/* Service Attributes */}
                 <div className="flex flex-wrap gap-2">

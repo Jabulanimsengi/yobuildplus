@@ -3,6 +3,8 @@ import {
     LayoutDashboard,
     CheckSquare,
     Users,
+    Building2,
+    FileText,
     Settings,
     Menu,
     Shield
@@ -36,11 +38,18 @@ export default function AdminLayout({
                     <Link href="/admin/approvals" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
                         <CheckSquare className="h-5 w-5" />
                         Approvals
-                        <span className="ml-auto bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">3</span>
+                    </Link>
+                    <Link href="/admin/contractors" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
+                        <Building2 className="h-5 w-5" />
+                        Contractors
+                    </Link>
+                    <Link href="/admin/quotes" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
+                        <FileText className="h-5 w-5" />
+                        Quotes
                     </Link>
                     <Link href="/admin/users" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
                         <Users className="h-5 w-5" />
-                        User Management
+                        Users
                     </Link>
                     <Link href="/admin/settings" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
                         <Settings className="h-5 w-5" />

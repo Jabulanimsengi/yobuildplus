@@ -34,6 +34,7 @@ export default function BuildersPage() {
     const [selectedProvince, setSelectedProvince] = useState<Province | undefined>();
     const [selectedRating, setSelectedRating] = useState<number | undefined>();
     const [selectedAttributes, setSelectedAttributes] = useState<ServiceAttribute[]>([]);
+    const [verifiedOnly, setVerifiedOnly] = useState(false);
     const [emergencyOnly, setEmergencyOnly] = useState(false);
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
     const [selectedBuilderId, setSelectedBuilderId] = useState<string | undefined>();
@@ -92,6 +93,11 @@ export default function BuildersPage() {
             results = results.filter((b) => b.rating >= selectedRating);
         }
 
+        // Verified filter
+        if (verifiedOnly) {
+            results = results.filter((b) => b.verified);
+        }
+
         // Service attributes filter
         if (selectedAttributes.length > 0) {
             results = results.filter((b) =>
@@ -100,7 +106,7 @@ export default function BuildersPage() {
         }
 
         return results;
-    }, [builders, searchQuery, selectedCategory, selectedProvince, selectedRating, selectedAttributes, emergencyOnly]);
+    }, [builders, searchQuery, selectedCategory, selectedProvince, selectedRating, selectedAttributes, verifiedOnly, emergencyOnly]);
 
     const handleAttributeToggle = (attribute: ServiceAttribute) => {
         setSelectedAttributes((prev) =>
@@ -116,6 +122,7 @@ export default function BuildersPage() {
         setSelectedProvince(undefined);
         setSelectedRating(undefined);
         setSelectedAttributes([]);
+        setVerifiedOnly(false);
         setEmergencyOnly(false);
     };
 
@@ -210,10 +217,12 @@ export default function BuildersPage() {
                             selectedProvince={selectedProvince}
                             selectedRating={selectedRating}
                             selectedAttributes={selectedAttributes}
+                            verifiedOnly={verifiedOnly}
                             onCategoryChange={setSelectedCategory}
                             onProvinceChange={setSelectedProvince}
                             onRatingChange={setSelectedRating}
                             onAttributeToggle={handleAttributeToggle}
+                            onVerifiedOnlyChange={setVerifiedOnly}
                             onClearFilters={handleClearFilters}
                             className={viewMode === 'map' ? 'border-none shadow-none p-0 bg-transparent' : ''}
                         />

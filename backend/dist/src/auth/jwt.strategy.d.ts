@@ -46,7 +46,7 @@ export declare class JwtStrategy extends JwtStrategy_base {
         createdAt: Date;
         updatedAt: Date;
         email: string;
-        role: string;
+        role: import(".prisma/client").$Enums.Role;
     }>;
 }
 export {};

@@ -15,6 +15,8 @@ const admin_module_1 = require("./admin/admin.module");
 const auth_module_1 = require("./auth/auth.module");
 const quotes_module_1 = require("./quotes/quotes.module");
 const notifications_module_1 = require("./notifications/notifications.module");
+const saved_module_1 = require("./saved/saved.module");
+const reviews_module_1 = require("./reviews/reviews.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -28,6 +30,8 @@ exports.AppModule = AppModule = __decorate([
             auth_module_1.AuthModule,
             quotes_module_1.QuotesModule,
             notifications_module_1.NotificationsModule,
+            saved_module_1.SavedModule,
+            reviews_module_1.ReviewsModule,
         ],
     })
 ], AppModule);

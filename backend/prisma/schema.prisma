@@ -14,18 +14,25 @@ datasource db {
 // USER MODELS (Authentication)
 // ============================================
 
+enum Role {
+  admin
+  contractor
+  client
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
   name      String
-  role      String   @default("client") // admin, contractor, client
+  role      Role     @default(client)
   
   builderId String?  @unique
   builder   Builder? @relation(fields: [builderId], references: [id])
   
-  notifications  Notification[]
-  quoteRequests  QuoteRequest[]
+  notifications     Notification[]
+  quoteRequests     QuoteRequest[]
+  savedContractors  SavedContractor[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -33,6 +40,20 @@ model User {
   @@index([email])
   @@index([role])
 }
+
+model SavedContractor {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  builderId String
+  builder   Builder  @relation(fields: [builderId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, builderId])
+  @@index([userId])
+}
+
 
 // ============================================
 // CATEGORY MODELS
@@ -117,6 +138,7 @@ model Builder {
   projects      Project[]
   reviews       Review[]
   quotes        QuoteRequest[]
+  savedBy       SavedContractor[]
   user          User?
   
   createdAt DateTime @default(now())

@@ -13,7 +13,7 @@ export declare class AuthService {
             updatedAt: Date;
             email: string;
             builderId: string | null;
-            role: string;
+            role: import(".prisma/client").$Enums.Role;
         };
         token: string;
     }>;
@@ -61,7 +61,7 @@ export declare class AuthService {
             updatedAt: Date;
             email: string;
             builderId: string | null;
-            role: string;
+            role: import(".prisma/client").$Enums.Role;
         };
         token: string;
     }>;
@@ -109,7 +109,7 @@ export declare class AuthService {
             createdAt: Date;
             updatedAt: Date;
             email: string;
-            role: string;
+            role: import(".prisma/client").$Enums.Role;
         };
         token: string;
         isNewUser: boolean;
@@ -157,6 +157,6 @@ export declare class AuthService {
         updatedAt: Date;
         email: string;
         builderId: string | null;
-        role: string;
+        role: import(".prisma/client").$Enums.Role;
     }>;
 }

@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto, LoginDto, OAuthLoginDto } from './dto/auth.dto';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -83,15 +84,27 @@ export class AuthService {
             // Generate a random password for OAuth users (they won't use it)
             const randomPassword = await bcrypt.hash(Math.random().toString(36), 10);
 
+            // Fix role type
+            const role = oauthDto.role ? (oauthDto.role as Role) : Role.client;
+
+            // Use a specific variable for new user to avoid type confusion during creation?
+            // But we need to assign back to 'user'.
+            // The error "Property 'builder' is missing" happens because create might return User without builder if include is not working or typed correctly?
+            // We'll trust include works and cast or just use it.
             user = await this.prisma.user.create({
                 data: {
                     email: oauthDto.email,
                     password: randomPassword,
                     name: oauthDto.name,
-                    role: oauthDto.role || 'client',
+                    role: role,
                 },
                 include: { builder: true },
             });
+        }
+
+        // Ensure user is not null for TS
+        if (!user) {
+            throw new Error("Failed to login/register user");
         }
 
         const { password, ...result } = user;

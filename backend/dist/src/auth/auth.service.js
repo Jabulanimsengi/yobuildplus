@@ -47,6 +47,7 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const prisma_service_1 = require("../prisma/prisma.service");
 const bcrypt = __importStar(require("bcrypt"));
+const client_1 = require("@prisma/client");
 let AuthService = class AuthService {
     prisma;
     jwtService;
@@ -105,15 +106,19 @@ let AuthService = class AuthService {
         if (!user) {
             isNewUser = true;
             const randomPassword = await bcrypt.hash(Math.random().toString(36), 10);
+            const role = oauthDto.role ? oauthDto.role : client_1.Role.client;
             user = await this.prisma.user.create({
                 data: {
                     email: oauthDto.email,
                     password: randomPassword,
                     name: oauthDto.name,
-                    role: oauthDto.role || 'consumer',
+                    role: role,
                 },
                 include: { builder: true },
             });
+        }
+        if (!user) {
+            throw new Error("Failed to login/register user");
         }
         const { password, ...result } = user;
         const token = this.jwtService.sign({ sub: user.id, email: user.email, role: user.role });
